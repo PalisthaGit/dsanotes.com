@@ -27,7 +27,8 @@ function HeroVisualizerCard() {
         background: "#1a1a2e",
         borderRadius: 14,
         padding: 24,
-        flex: "0 0 380px",
+        width: "100%",
+        maxWidth: 380,
       }}
     >
       {/* Top bar */}
@@ -84,14 +85,8 @@ function HeroSection() {
   return (
     <section style={{ background: "#ffffff", width: "100%" }}>
       <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          padding: "64px 96px",
-          display: "flex",
-          alignItems: "center",
-          gap: 56,
-        }}
+        style={{ maxWidth: 1280, margin: "0 auto" }}
+        className="px-4 sm:px-8 lg:px-24 py-10 lg:py-16 flex flex-col lg:flex-row items-center gap-10 lg:gap-14"
       >
         {/* Left */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -198,14 +193,8 @@ function StatsStrip() {
   return (
     <section style={{ background: "#f0f7ff", width: "100%" }}>
       <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          padding: "32px 96px",
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 16,
-        }}
+        style={{ maxWidth: 1280, margin: "0 auto", gap: 16 }}
+        className="px-4 sm:px-8 lg:px-24 py-8 grid grid-cols-2 lg:grid-cols-4"
       >
         {stats.map((stat) => (
           <div
@@ -467,7 +456,7 @@ function VisualizerCard({ card }: { card: CardData }) {
 function VisualizerCardsSection() {
   return (
     <section style={{ background: "#ffffff", width: "100%" }}>
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "44px 96px" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto" }} className="px-4 sm:px-8 lg:px-24 py-10 lg:py-11">
         <h2
           style={{
             fontFamily: "var(--font-poppins)",
@@ -492,11 +481,8 @@ function VisualizerCardsSection() {
         </p>
 
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 14,
-          }}
+          style={{ gap: 14 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
         >
           {cards.map((card) => (
             <VisualizerCard key={card.title} card={card} />

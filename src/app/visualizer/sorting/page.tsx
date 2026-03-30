@@ -43,10 +43,11 @@ function SortPageContent() {
   }, [handleStopSorting, generateArray]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 p-6">
+    <div className="max-w-7xl mx-auto space-y-4 p-3 sm:p-4 lg:p-6">
       <h1 className="text-2xl font-bold text-center">Sorting Algorithms</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="order-2 lg:order-1">
         <SortingControls
           arraySize={arraySize}
           setArraySize={setArraySize}
@@ -69,8 +70,11 @@ function SortPageContent() {
           stepForward={stepForward}
           setCustomArray={setCustomArray}
         />
+        </div>
 
-        <SortVisualizer array={array} steps={steps} currentStep={currentStep} />
+        <div className="order-1 lg:order-2 lg:col-span-3">
+          <SortVisualizer array={array} steps={steps} currentStep={currentStep} />
+        </div>
       </div>
     </div>
   );

@@ -36,11 +36,11 @@ const columns = [
 export default function Footer() {
   return (
     <footer style={{ background: '#f0f7ff', width: '100%' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 96px 24px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }} className="px-4 sm:px-8 lg:px-24 py-10 lg:py-12">
         {/* Top section */}
-        <div style={{ display: 'flex', gap: '40px' }}>
+        <div className="flex flex-col sm:flex-row gap-10">
           {/* Left: logo + tagline */}
-          <div style={{ flexBasis: '30%', flexShrink: 0 }}>
+          <div className="sm:basis-[30%] shrink-0">
             <span
               style={{
                 fontFamily: 'Poppins, sans-serif',
@@ -69,9 +69,9 @@ export default function Footer() {
           </div>
 
           {/* Right: three columns */}
-          <div style={{ flexBasis: '70%', display: 'flex', gap: '40px' }}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 sm:basis-[70%]">
             {columns.map((col) => (
-              <div key={col.heading} style={{ flex: 1 }}>
+              <div key={col.heading}>
                 <p
                   style={{
                     fontFamily: 'Nunito, sans-serif',
@@ -114,13 +114,7 @@ export default function Footer() {
         <div style={{ borderTop: '0.5px solid #d4e6ff', marginTop: '40px' }} />
 
         {/* Bottom bar */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            paddingTop: '20px',
-          }}
-        >
+        <div className="flex flex-col sm:flex-row justify-between gap-2 pt-5">
           <span
             style={{
               fontFamily: 'Nunito, sans-serif',

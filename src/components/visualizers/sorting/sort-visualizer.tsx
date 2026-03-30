@@ -151,7 +151,7 @@ export function SortVisualizer({
   );
 
   return (
-    <Card className="lg:col-span-3">
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Visualization</CardTitle>
         {currentStepData?.message && (
@@ -163,7 +163,7 @@ export function SortVisualizer({
 
       <CardContent>
         {/* ── Main bar chart ── */}
-        <div className="h-96 flex items-end justify-center gap-px p-4 bg-muted rounded-lg">
+        <div className="h-56 sm:h-72 lg:h-96 flex items-end justify-center gap-px p-4 bg-muted rounded-lg">
           {array.length === 0 ? (
             <p className="text-center text-muted-foreground self-center">
               Generate an array to begin visualization.

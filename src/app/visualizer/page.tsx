@@ -277,12 +277,8 @@ export default function VisualizerPage() {
       {/* Section 1 — Page Header */}
       <section style={{ background: "#ffffff", width: "100%" }}>
         <div
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "28px 48px 24px",
-            textAlign: "center",
-          }}
+          style={{ maxWidth: 1280, margin: "0 auto", textAlign: "center" }}
+          className="px-4 sm:px-8 lg:px-12 pt-7 pb-6"
         >
           {/* Breadcrumb */}
           <div
@@ -336,14 +332,8 @@ export default function VisualizerPage() {
       {/* Section 2 — Filter Tabs */}
       <section style={{ background: "#ffffff", width: "100%" }}>
         <div
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "24px 48px",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 8,
-          }}
+          style={{ maxWidth: 1280, margin: "0 auto", flexWrap: "wrap", gap: 8 }}
+          className="px-4 sm:px-8 lg:px-12 py-6 flex"
         >
           {FILTER_TABS.map((tab) => {
             const isActive = tab === activeFilter;
@@ -373,14 +363,8 @@ export default function VisualizerPage() {
       {/* Section 3 — Cards Grid */}
       <section style={{ background: "#ffffff", width: "100%" }}>
         <div
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "0px 48px 64px",
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 20,
-          }}
+          style={{ maxWidth: 1280, margin: "0 auto", gap: 20 }}
+          className="px-4 sm:px-8 lg:px-12 pb-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
         >
           {filteredCards.map((card) => (
             <VisualizerCard key={card.title} card={card} />
@@ -391,12 +375,8 @@ export default function VisualizerPage() {
       {/* Section 4 — CTA Banner */}
       <section style={{ background: "#f0f7ff", width: "100%" }}>
         <div
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "48px 48px",
-            textAlign: "center",
-          }}
+          style={{ maxWidth: 1280, margin: "0 auto", textAlign: "center" }}
+          className="px-4 sm:px-8 lg:px-12 py-12"
         >
           <h2
             style={{

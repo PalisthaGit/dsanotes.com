@@ -66,7 +66,7 @@ export const SortingControls: React.FC<SortingControlsProps> = ({
   const isBusy = isRunning && !isPaused;
 
   return (
-    <Card className="lg:col-span-1">
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Controls</CardTitle>
       </CardHeader>
