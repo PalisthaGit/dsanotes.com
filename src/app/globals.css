@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  /* Core palette */
+  --color-navbar: #6FB5FF;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f0f7ff;
+  --color-bg-card: #f5faff;
+  --color-border: #d4e6ff;
+  --color-dark: #1a1a2e;
+
+  /* Text colors */
+  --color-text-primary: #0d1117;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-navbar: #1a1a2e;
+  --color-text-accent: #6FB5FF;
+  --color-text-accent-dark: #1a6bb5;
+
+  /* Accent */
+  --color-accent: #6FB5FF;
+  --color-accent-light: #dbeeff;
+
+  /* Algorithm pill colors */
+  --color-pill-blue-bg: #dbeeff;
+  --color-pill-blue-text: #1a6bb5;
+  --color-pill-pink-bg: #fce7f3;
+  --color-pill-pink-text: #be185d;
+  --color-pill-green-bg: #dcfce7;
+  --color-pill-green-text: #166534;
+
+  /* Status colors */
+  --color-status-active-bg: #dcfce7;
+  --color-status-active-text: #166534;
+  --color-status-coming-bg: #fef9c3;
+  --color-status-coming-text: #854d0e;
+  --color-status-error: #f87171;
+
+  /* Visualizer bar colors */
+  --color-viz-comparing: #f472b6;
+  --color-viz-sorted: #4ade80;
+  --color-viz-pivot: #facc15;
+  --color-viz-unsorted: #6FB5FF;
+
+  /* Border radius */
+  --radius-card: 12px;
+  --radius-button: 8px;
+  --radius-button-hero: 10px;
+
+  /* Font families */
+  --font-heading: var(--font-poppins);
+  --font-body: var(--font-nunito);
+  --font-code: var(--font-jetbrains);
+}
+
+body {
+  background-color: #ffffff;
+  font-family: var(--font-nunito), sans-serif;
+  color: #0d1117;
+  letter-spacing: 0.03em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: 0.04em;
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-jetbrains), monospace;
+  letter-spacing: 0.02em;
+}
