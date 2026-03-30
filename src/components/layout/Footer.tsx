@@ -6,12 +6,12 @@ const columns = [
   {
     heading: 'VISUALIZE',
     links: [
-      { label: 'Sorting Algorithms', href: '/visualize/sorting' },
-      { label: 'Search Algorithms', href: '/visualize/search' },
-      { label: 'Pathfinding', href: '/visualize/pathfinding' },
-      { label: 'MST Algorithms', href: '/visualize/mst' },
-      { label: 'Strongly Connected', href: '/visualize/scc' },
-      { label: 'String Matching', href: '/visualize/string-matching' },
+      { label: 'Sorting Algorithms', href: '/visualizer/sorting' },
+      { label: 'Search Algorithms', href: '/visualizer/searching' },
+      { label: 'Pathfinding', href: '/visualizer/pathfinding' },
+      { label: 'MST Algorithms', href: '/visualizer/mst' },
+      { label: 'Strongly Connected', href: '/visualizer/scc' },
+      { label: 'String Matching', href: '/visualizer/string-matching' },
     ],
   },
   {
