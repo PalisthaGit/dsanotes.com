@@ -36,7 +36,7 @@ const columns = [
 export default function Footer() {
   return (
     <footer style={{ background: '#f0f7ff', width: '100%' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 48px 24px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 96px 24px' }}>
         {/* Top section */}
         <div style={{ display: 'flex', gap: '40px' }}>
           {/* Left: logo + tagline */}

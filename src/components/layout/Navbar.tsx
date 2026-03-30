@@ -15,7 +15,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-navbar shadow-sm">
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 96px' }}>
         <div className="flex items-center justify-between py-3">
           {/* Logo */}
           <Link
@@ -70,7 +70,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden bg-navbar border-t border-border">
-          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px' }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 96px' }}>
             <div className="pb-4 flex flex-col gap-3">
               {/* Mobile search */}
               <div className="relative flex items-center mt-3">

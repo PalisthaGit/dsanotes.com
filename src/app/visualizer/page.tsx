@@ -275,12 +275,13 @@ export default function VisualizerPage() {
   return (
     <div style={{ background: "#ffffff" }}>
       {/* Section 1 — Page Header */}
-      <section style={{ background: "#f0f7ff", width: "100%" }}>
+      <section style={{ background: "#ffffff", width: "100%" }}>
         <div
           style={{
             maxWidth: 1280,
             margin: "0 auto",
-            padding: "48px 48px 40px",
+            padding: "28px 48px 24px",
+            textAlign: "center",
           }}
         >
           {/* Breadcrumb */}
@@ -307,9 +308,9 @@ export default function VisualizerPage() {
             style={{
               fontFamily: "var(--font-poppins)",
               fontWeight: 700,
-              fontSize: 36,
+              fontSize: 28,
               color: "#0d1117",
-              marginTop: 12,
+              marginTop: 8,
               marginBottom: 0,
             }}
           >
@@ -321,9 +322,9 @@ export default function VisualizerPage() {
             style={{
               fontFamily: "var(--font-nunito)",
               fontWeight: 600,
-              fontSize: 15,
+              fontSize: 13,
               color: "#6b7280",
-              marginTop: 8,
+              marginTop: 4,
               marginBottom: 0,
             }}
           >
