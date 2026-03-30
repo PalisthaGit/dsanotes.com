@@ -42,6 +42,26 @@
   --color-viz-pivot: #facc15;
   --color-viz-unsorted: #6FB5FF;
 
+  /* shadcn/ui semantic tokens (required for Select, Card, etc.) */
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0d1117;
+  --color-input: #d4e6ff;
+  --color-ring: #6FB5FF;
+  --color-accent: #f0f7ff;
+  --color-accent-foreground: #0d1117;
+  --color-muted: #f3f4f6;
+  --color-muted-foreground: #6b7280;
+  --color-card: #ffffff;
+  --color-card-foreground: #0d1117;
+  --color-primary: #6FB5FF;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f0f7ff;
+  --color-secondary-foreground: #0d1117;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-foreground: #0d1117;
+  --color-background: #ffffff;
+
   /* Border radius */
   --radius-card: 12px;
   --radius-button: 8px;
