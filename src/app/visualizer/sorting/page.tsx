@@ -1,11 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { type CSSProperties, useCallback, useMemo, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { SortingStep } from "@/algorithms/types/sorting";
 import { useSortVisualization } from "@/hooks/use-sort-visualization";
 
-// ── Algorithm pill config ─────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
+const DEFAULT_ARRAY = [38, 27, 43, 12, 52, 19];
+
 const ALGORITHMS = [
   { key: "bubble", label: "Bubble" },
   { key: "merge", label: "Merge" },
@@ -14,42 +22,154 @@ const ALGORITHMS = [
   { key: "selection", label: "Selection" },
 ];
 
-// ── Speed mapping (speed value → delay: 1000 - v*10 ms) ──────────────────────
 const SPEED_MAP: Record<string, number> = {
-  "0.5×": 20, // 800 ms
-  "1×": 60,   // 400 ms
-  "2×": 85,   // 150 ms
+  "0.5×": 20,
+  "1×": 60,
+  "2×": 85,
 };
 
-// ── Bar colour per step state ─────────────────────────────────────────────────
-function getBarStyle(index: number, step: SortingStep | undefined): CSSProperties {
-  if (!step) return { backgroundColor: "#6FB5FF" };
-  if (step.sorted?.includes(index)) return { backgroundColor: "#22c55e" };
-  if (step.pivot === index) return { backgroundColor: "#facc15" };
+const LEGEND = [
+  { label: "Unsorted", color: "#2a3350" },
+  { label: "Comparing", color: "#6FB5FF" },
+  { label: "Swapping", color: "#fb923c" },
+  { label: "Sorted", color: "#22c55e" },
+];
+
+// ── Bar helpers ───────────────────────────────────────────────────────────────
+type BarState = "sorted" | "swapping" | "comparing" | "unsorted";
+
+function getBarState(index: number, step: SortingStep | undefined): BarState {
+  if (!step) return "unsorted";
+  if (step.sorted?.includes(index)) return "sorted";
+  if (step.swapping?.includes(index)) return "swapping";
   if (step.comparing?.includes(index) || step.merging?.includes(index))
-    return { backgroundColor: "#f472b6", boxShadow: "0 0 14px rgba(244,114,182,0.5)" };
-  if (step.swapping?.includes(index)) return { backgroundColor: "#fb923c" };
-  return { backgroundColor: "#6FB5FF" };
+    return "comparing";
+  return "unsorted";
 }
 
-// ── Legend ────────────────────────────────────────────────────────────────────
-const LEGEND_STATES = {
-  unsorted:  { label: "Unsorted",  color: "#6FB5FF" },
-  comparing: { label: "Comparing", color: "#f472b6" },
-  pivot:     { label: "Pivot",     color: "#facc15" },
-  swapping:  { label: "Swapping",  color: "#fb923c" },
-  sorted:    { label: "Sorted",    color: "#22c55e" },
-} as const;
+function getBarStyle(state: BarState): CSSProperties {
+  switch (state) {
+    case "sorted":
+      return { backgroundColor: "#22c55e" };
+    case "swapping":
+      return {
+        backgroundColor: "#fb923c",
+        boxShadow: "0 0 20px rgba(251,146,60,0.5)",
+      };
+    case "comparing":
+      return {
+        backgroundColor: "#6FB5FF",
+        boxShadow: "0 0 16px rgba(111,181,255,0.5)",
+      };
+    default:
+      return { backgroundColor: "#2a3350" };
+  }
+}
 
-type LegendKey = keyof typeof LEGEND_STATES;
+// ── Message derivation ────────────────────────────────────────────────────────
+type MessageData =
+  | { type: "comparing"; val1: number; val2: number; needsSwap: boolean }
+  | { type: "swapping"; val1: number; val2: number }
+  | { type: "sorted" }
+  | { type: "done" }
+  | { type: "info"; text: string }
+  | { type: "idle" };
 
-const ALGO_LEGEND: Record<string, LegendKey[]> = {
-  bubble:    ["unsorted", "comparing", "swapping", "sorted"],
-  merge:     ["unsorted", "comparing", "swapping", "sorted"],
-  quick:     ["unsorted", "comparing", "pivot", "swapping", "sorted"],
-  insertion: ["unsorted", "comparing", "swapping", "sorted"],
-  selection: ["unsorted", "comparing", "swapping", "sorted"],
-};
+function deriveMessage(step: SortingStep | undefined): MessageData {
+  if (!step) return { type: "idle" };
+
+  const { stepType, array, comparing, swapping, sorted } = step;
+
+  if (stepType === "complete") return { type: "done" };
+
+  if (swapping && swapping.length >= 2) {
+    const [i, j] = swapping;
+    return {
+      type: "swapping",
+      val1: array[i]?.value ?? 0,
+      val2: array[j]?.value ?? 0,
+    };
+  }
+
+  if (comparing && comparing.length >= 2) {
+    const [i, j] = comparing;
+    const val1 = array[i]?.value ?? 0;
+    const val2 = array[j]?.value ?? 0;
+    return { type: "comparing", val1, val2, needsSwap: val1 > val2 };
+  }
+
+  if (
+    stepType === "sorted" &&
+    sorted &&
+    sorted.length > 0 &&
+    !comparing &&
+    !swapping
+  ) {
+    return { type: "sorted" };
+  }
+
+  if (step.message) return { type: "info", text: step.message };
+
+  return { type: "idle" };
+}
+
+// ── Swap icon SVG ─────────────────────────────────────────────────────────────
+function SwapIcon({ animKey }: { animKey: number }) {
+  return (
+    <svg
+      key={animKey}
+      width={52}
+      height={52}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{
+        position: "absolute",
+        left: "calc(100% - 20px)",
+        top: -58,
+        zIndex: 10,
+        filter: "drop-shadow(0 0 10px rgba(45,212,191,0.6))",
+        animation:
+          "swapIconIn 0.45s cubic-bezier(0.34,1.4,0.64,1) forwards, swapIconPulse 0.7s ease-in-out 0.45s infinite",
+      }}
+    >
+      {/* Top arrow: curves right */}
+      <path
+        d="M 10 42 C 12 20, 72 18, 78 36"
+        stroke="#2dd4bf"
+        strokeWidth={10}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Top arrowhead */}
+      <polyline
+        points="62,20 80,36 68,52"
+        stroke="#2dd4bf"
+        strokeWidth={10}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* Bottom arrow: curves left */}
+      <path
+        d="M 90 58 C 88 80, 28 82, 22 64"
+        stroke="#2dd4bf"
+        strokeWidth={10}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Bottom arrowhead */}
+      <polyline
+        points="38,80 20,64 32,48"
+        stroke="#2dd4bf"
+        strokeWidth={10}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function SortingPage() {
@@ -62,6 +182,8 @@ export default function SortingPage() {
     setSpeed,
     steps,
     currentStep,
+    comparisons,
+    swaps,
     isRunning,
     isPaused,
     startSorting,
@@ -70,16 +192,34 @@ export default function SortingPage() {
     stepForward,
   } = useSortVisualization(20);
 
-  const [showModal, setShowModal]     = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [customInput, setCustomInput] = useState("");
-  const [speedLabel, setSpeedLabel]   = useState<"0.5×" | "1×" | "2×">("1×");
+  const [speedLabel, setSpeedLabel] = useState<"0.5×" | "1×" | "2×">("1×");
 
-  const isPlaying      = isRunning && !isPaused;
-  const totalSteps     = steps.length;
+  const isPlaying = isRunning && !isPaused;
+  const totalSteps = steps.length;
   const currentStepData = steps[currentStep] as SortingStep | undefined;
-  const maxValue       = useMemo(() => Math.max(...array.map((e) => e.value), 1), [array]);
-  const legendKeys     = ALGO_LEGEND[algorithm] ?? ALGO_LEGEND.bubble;
-  const canStep        = !isRunning || isPaused;
+  const maxValue = useMemo(
+    () => Math.max(...array.map((e) => e.value), 1),
+    [array],
+  );
+  const canStep = !isRunning || isPaused;
+
+  // Set default array on mount
+  useEffect(() => {
+    setCustomArray(DEFAULT_ARRAY);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Derive message
+  const msg = deriveMessage(currentStepData);
+
+  // Identify swapping bar indices (lower index gets the icon)
+  const swappingIndices = currentStepData?.swapping ?? [];
+  const swapLow =
+    swappingIndices.length === 2
+      ? Math.min(swappingIndices[0], swappingIndices[1])
+      : -1;
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleAlgorithmChange = useCallback(
@@ -139,15 +279,43 @@ export default function SortingPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div style={{ background: "#f2f4f7", minHeight: "100vh" }}>
+      {/* Keyframe animations */}
+      <style>{`
+        @keyframes swapIconIn {
+          0%   { transform: scale(0.3) rotate(-120deg); opacity: 0; }
+          100% { transform: scale(1)   rotate(0deg);   opacity: 1; }
+        }
+        @keyframes swapIconPulse {
+          0%, 100% { transform: scale(1);   }
+          50%      { transform: scale(1.1); }
+        }
+        @keyframes swapSlideRight {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(calc(100% + 6px)); }
+        }
+        @keyframes swapSlideLeft {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(calc(-100% - 6px)); }
+        }
+      `}</style>
 
       {/* ── Breadcrumb ── */}
       <nav style={{ background: "#f2f4f7", padding: "16px 48px" }}>
-        <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 600, fontSize: 12 }}>
+        <span
+          style={{
+            fontFamily: "Nunito, sans-serif",
+            fontWeight: 600,
+            fontSize: 12,
+          }}
+        >
           <Link href="/" style={{ color: "#9ca3af", textDecoration: "none" }}>
             Home
           </Link>
           <span style={{ color: "#9ca3af", margin: "0 6px" }}>/</span>
-          <Link href="/visualizer" style={{ color: "#9ca3af", textDecoration: "none" }}>
+          <Link
+            href="/visualizer"
+            style={{ color: "#9ca3af", textDecoration: "none" }}
+          >
             Visualizer
           </Link>
           <span style={{ color: "#9ca3af", margin: "0 6px" }}>/</span>
@@ -156,7 +324,6 @@ export default function SortingPage() {
       </nav>
 
       <div style={{ padding: "0 48px 48px" }}>
-
         {/* ── Title + Pill Switcher ── */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <h1
@@ -194,7 +361,11 @@ export default function SortingPage() {
                   cursor: "pointer",
                   transition: "all 0.15s",
                   ...(algorithm === key
-                    ? { background: "#fff", color: "#0d1117", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }
+                    ? {
+                        background: "#fff",
+                        color: "#0d1117",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+                      }
                     : { background: "transparent", color: "#9ca3af" }),
                 }}
               >
@@ -224,13 +395,32 @@ export default function SortingPage() {
                 alignItems: "flex-end",
                 height: 260,
                 gap: 6,
+                position: "relative",
               }}
             >
               {array.map((element, index) => {
-                const heightPct = Math.max((element.value / maxValue) * 100, 2);
+                const heightPct = Math.max(
+                  (element.value / maxValue) * 100,
+                  2,
+                );
+                const barState = getBarState(index, currentStepData);
+                const isSwapLow = index === swapLow;
+                const isSwappingBar = swappingIndices.includes(index);
+
+                // Slide animation for swapping bars
+                let slideAnim: string | undefined;
+                if (isSwappingBar && swappingIndices.length === 2) {
+                  const [a, b] = swappingIndices;
+                  if (index === Math.min(a, b)) {
+                    slideAnim = `swapSlideRight 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards`;
+                  } else {
+                    slideAnim = `swapSlideLeft 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards`;
+                  }
+                }
+
                 return (
                   <div
-                    key={element.id}
+                    key={index}
                     style={{
                       flex: 1,
                       height: `${heightPct}%`,
@@ -239,56 +429,209 @@ export default function SortingPage() {
                       flexDirection: "column",
                       justifyContent: "flex-start",
                       alignItems: "center",
-                      ...getBarStyle(index, currentStepData),
+                      position: "relative",
+                      animation: slideAnim,
+                      ...getBarStyle(barState),
                     }}
                   >
-                    {array.length <= 20 && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          color: "#fff",
-                          fontWeight: 700,
-                          lineHeight: 1,
-                          paddingTop: 2,
-                        }}
-                      >
-                        {element.value}
-                      </span>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        color: "#fff",
+                        fontWeight: 700,
+                        lineHeight: 1,
+                        paddingTop: 4,
+                      }}
+                    >
+                      {element.value}
+                    </span>
+
+                    {/* Swap icon — rendered on the lower-index swapping bar */}
+                    {isSwapLow && (
+                      <SwapIcon animKey={currentStep} />
                     )}
                   </div>
                 );
               })}
             </div>
+          </div>
 
-            {/* Legend */}
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 16 }}>
-              {legendKeys.map((key) => {
-                const item = LEGEND_STATES[key];
-                return (
-                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <div
-                      style={{
-                        width: 9,
-                        height: 9,
-                        borderRadius: 2,
-                        background: item.color,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontFamily: "Nunito, sans-serif",
-                        fontWeight: 600,
-                        fontSize: 10,
-                        color: "#3a4460",
-                      }}
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-                );
-              })}
+          {/* Message bar */}
+          <div
+            style={{
+              background: "#1a1f2e",
+              borderRadius: 12,
+              padding: "14px 18px",
+              marginBottom: 18,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            {/* Icon */}
+            <span style={{ fontSize: 16, flexShrink: 0 }}>
+              {msg.type === "comparing"
+                ? "🔍"
+                : msg.type === "swapping"
+                  ? "⇄"
+                  : msg.type === "sorted"
+                    ? "✅"
+                    : msg.type === "done"
+                      ? "🎉"
+                      : "🔍"}
+            </span>
+
+            {/* Title + Sub */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Title */}
+              <div
+                style={{
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  color: "#e2e8f0",
+                  marginBottom: 2,
+                }}
+              >
+                {msg.type === "comparing" && (
+                  <>
+                    Comparing{" "}
+                    <span style={{ color: "#6FB5FF" }}>{msg.val1}</span> and{" "}
+                    <span style={{ color: "#6FB5FF" }}>{msg.val2}</span>
+                  </>
+                )}
+                {msg.type === "swapping" && (
+                  <>
+                    Swapping{" "}
+                    <span style={{ color: "#fb923c" }}>{msg.val1}</span> and{" "}
+                    <span style={{ color: "#fb923c" }}>{msg.val2}</span>
+                  </>
+                )}
+                {msg.type === "sorted" && (
+                  <span style={{ color: "#22c55e" }}>Sorted!</span>
+                )}
+                {msg.type === "done" && "Array fully sorted!"}
+                {msg.type === "info" && msg.text}
+                {msg.type === "idle" && "Press Play to start"}
+              </div>
+
+              {/* Sub */}
+              <div
+                style={{
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 600,
+                  fontSize: 12,
+                  color: "#6b7a99",
+                }}
+              >
+                {msg.type === "comparing" &&
+                  (msg.needsSwap
+                    ? `${msg.val1} is greater — a swap is needed!`
+                    : "Already in order — no swap needed.")}
+                {msg.type === "swapping" && "Bars are swapping positions!"}
+                {msg.type === "sorted" &&
+                  "This element is now in its correct position."}
+                {msg.type === "done" && "All elements are in their correct order."}
+                {msg.type === "idle" &&
+                  "Choose an algorithm and press play."}
+              </div>
             </div>
+
+            {/* Comparisons + Swaps */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: 2,
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span
+                  style={{
+                    fontFamily: "Nunito, sans-serif",
+                    fontWeight: 600,
+                    fontSize: 10,
+                    color: "#3a4460",
+                  }}
+                >
+                  Comparisons
+                </span>
+                <span
+                  style={{
+                    fontFamily: "Poppins, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 18,
+                    color: "#6FB5FF",
+                    lineHeight: 1,
+                  }}
+                >
+                  {comparisons}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span
+                  style={{
+                    fontFamily: "Nunito, sans-serif",
+                    fontWeight: 600,
+                    fontSize: 10,
+                    color: "#3a4460",
+                  }}
+                >
+                  Swaps
+                </span>
+                <span
+                  style={{
+                    fontFamily: "Poppins, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 18,
+                    color: "#22c55e",
+                    lineHeight: 1,
+                  }}
+                >
+                  {swaps}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div
+            style={{
+              display: "flex",
+              gap: 20,
+              flexWrap: "wrap",
+              paddingBottom: 20,
+              paddingLeft: 4,
+            }}
+          >
+            {LEGEND.map(({ label, color }) => (
+              <div
+                key={label}
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <div
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: 2,
+                    background: color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: "Nunito, sans-serif",
+                    fontWeight: 600,
+                    fontSize: 10,
+                    color: "#3a4460",
+                  }}
+                >
+                  {label}
+                </span>
+              </div>
+            ))}
           </div>
 
           {/* Controls bar */}
@@ -300,12 +643,21 @@ export default function SortingPage() {
               alignItems: "center",
               justifyContent: "space-between",
               borderRadius: "0 0 24px 24px",
+              margin: "0 -48px",
             }}
           >
             {/* Left — Step counter */}
-            <div style={{ fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: 12 }}>
+            <div
+              style={{
+                fontFamily: "Nunito, sans-serif",
+                fontWeight: 700,
+                fontSize: 12,
+              }}
+            >
               <span style={{ color: "#3a4460" }}>Step </span>
-              <span style={{ color: "#6FB5FF" }}>{totalSteps > 0 ? currentStep + 1 : 0}</span>
+              <span style={{ color: "#6FB5FF" }}>
+                {totalSteps > 0 ? currentStep + 1 : 0}
+              </span>
               <span style={{ color: "#3a4460" }}> / </span>
               <span style={{ color: "#6b7a99" }}>{totalSteps}</span>
             </div>
@@ -341,8 +693,16 @@ export default function SortingPage() {
                   border: "none",
                   cursor: "pointer",
                   ...(isPlaying
-                    ? { background: "#1e2438", color: "#6FB5FF", boxShadow: "none" }
-                    : { background: "#6FB5FF", color: "#fff", boxShadow: "0 4px 20px rgba(111,181,255,0.35)" }),
+                    ? {
+                        background: "#1e2438",
+                        color: "#6FB5FF",
+                        boxShadow: "none",
+                      }
+                    : {
+                        background: "#6FB5FF",
+                        color: "#fff",
+                        boxShadow: "0 4px 20px rgba(111,181,255,0.35)",
+                      }),
                 }}
               >
                 {isPlaying ? "Pause" : "Play"}
@@ -426,7 +786,9 @@ export default function SortingPage() {
             + Custom Array
           </button>
 
-          <div style={{ width: 1, height: 16, background: "#d4e6ff" }} />
+          <div
+            style={{ width: 1, height: 16, background: "#d4e6ff" }}
+          />
 
           <button
             onClick={handleReset}
@@ -457,7 +819,9 @@ export default function SortingPage() {
             alignItems: "center",
             justifyContent: "center",
           }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}
         >
           <div
             style={{
