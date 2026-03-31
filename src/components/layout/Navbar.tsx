@@ -6,8 +6,9 @@ import { useState } from 'react'
 
 const navLinks = [
   { label: 'Visualizer', href: '/visualizer' },
+  { label: 'Data Structures', href: '/data-structures' },
+  { label: 'Problems', href: '/problems' },
   { label: 'Learn DSA', href: '/learn' },
-  { label: 'Common Problems', href: '/problems' },
 ]
 
 export default function Navbar() {

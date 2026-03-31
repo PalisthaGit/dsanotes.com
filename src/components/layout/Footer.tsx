@@ -18,9 +18,9 @@ const columns = [
     heading: 'LEARN',
     links: [
       { label: 'Learn DSA', href: '/learn' },
-      { label: 'Common Problems', href: '/learn/problems' },
-      { label: 'Data Structures', href: '/learn/data-structures' },
-      { label: 'Algorithms', href: '/learn/algorithms' },
+      { label: 'Common Problems', href: '/problems' },
+      { label: 'Data Structures', href: '/data-structures' },
+      { label: 'Algorithms', href: '/visualizer' },
     ],
   },
   {

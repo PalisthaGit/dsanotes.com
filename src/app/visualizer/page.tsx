@@ -90,8 +90,7 @@ const cards: CardData[] = [
       { label: "Rabin-Karp", bg: "#fce7f3", color: "#be185d" },
       { label: "Boyer-Moore", bg: "#dcfce7", color: "#166534" },
     ],
-    link: "",
-    disabled: true,
+    link: "/visualizer/string-matching",
   },
 ];
 

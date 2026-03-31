@@ -305,11 +305,10 @@ const cards: CardData[] = [
     title: "String Matching",
     description: "KMP, Rabin-Karp, Boyer-Moore algorithms.",
     pills: [
-      { label: "KMP", bg: "#f3f4f6", color: "#9ca3af" },
-      { label: "Rabin-Karp", bg: "#f3f4f6", color: "#9ca3af" },
+      { label: "KMP", bg: "#dbeeff", color: "#1a6bb5" },
+      { label: "Rabin-Karp", bg: "#fce7f3", color: "#be185d" },
     ],
     link: "/visualizer/string-matching",
-    disabled: true,
   },
 ];
 
