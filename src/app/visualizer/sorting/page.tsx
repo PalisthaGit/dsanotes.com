@@ -162,9 +162,23 @@ export default function SortingPage() {
   const isPlaying = isRunning && !isPaused;
   const totalSteps = steps.length;
   const currentStepData = steps[currentStep] as SortingStep | undefined;
+
+  // ── Display array — use pre-swap heights during swap animation ─────────────
+  // The engine immediately sets `array` to post-swap values when a swap step
+  // runs. To animate the slide correctly, we render the pre-swap heights
+  // (from the previous step) while the bars are sliding. After the animation
+  // the DOM snaps to post-swap heights, but since each visual position ends up
+  // with the same height value, the snap is invisible.
+  const displayArray = useMemo(() => {
+    if (currentStepData?.swapping && currentStep > 0) {
+      return (steps[currentStep - 1] as SortingStep | undefined)?.array ?? array;
+    }
+    return array;
+  }, [currentStepData, currentStep, steps, array]);
+
   const maxValue = useMemo(
-    () => Math.max(...array.map((e) => e.value), 1),
-    [array],
+    () => Math.max(...displayArray.map((e) => e.value), 1),
+    [displayArray],
   );
   const canStep = !isRunning || isPaused;
 
@@ -432,7 +446,7 @@ export default function SortingPage() {
                 overflow: "visible",
               }}
             >
-              {array.map((element, index) => {
+              {displayArray.map((element, index) => {
                 const heightPct = Math.max(
                   (element.value / maxValue) * 100,
                   2,
