@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type { SortingStep } from "@/algorithms/types/sorting";
@@ -167,16 +168,49 @@ export default function SortingPage() {
   );
   const canStep = !isRunning || isPaused;
 
+  // ── Visual step with brief grey gap between highlights ─────────────────────
+  // After any comparing/swapping step, briefly show all bars grey before
+  // revealing the next step's highlights. This gives a clear visual beat.
+  const [visualStep, setVisualStep] = useState<SortingStep | undefined>(
+    undefined,
+  );
+  const gapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (gapTimerRef.current) clearTimeout(gapTimerRef.current);
+
+    const step = steps[currentStep] as SortingStep | undefined;
+    const prevStep = steps[currentStep - 1] as SortingStep | undefined;
+
+    if (!step) {
+      setVisualStep(undefined);
+      return;
+    }
+
+    // Show grey gap after any highlighted step so highlights don't bleed
+    if (prevStep?.comparing || prevStep?.swapping) {
+      setVisualStep(undefined);
+      const gap = prevStep?.swapping ? 220 : 90;
+      gapTimerRef.current = setTimeout(() => setVisualStep(step), gap);
+      return () => {
+        if (gapTimerRef.current) clearTimeout(gapTimerRef.current);
+      };
+    }
+
+    setVisualStep(step);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, steps]);
+
   // Set default array on mount
   useEffect(() => {
     setCustomArray(DEFAULT_ARRAY);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const msg = deriveMsg(currentStepData);
+  const msg = deriveMsg(visualStep);
 
   // Swapping bar indices for the slide animation + icon
-  const swappingIndices = currentStepData?.swapping ?? [];
+  const swappingIndices = visualStep?.swapping ?? [];
   const swapLeft =
     swappingIndices.length === 2
       ? Math.min(swappingIndices[0], swappingIndices[1])
@@ -280,9 +314,10 @@ export default function SortingPage() {
         }
         .bar-base.swapping {
           background: #fb923c;
-          outline: none;
+          outline: 2.5px solid #fdba74;
+          outline-offset: 3px;
           transform: translateY(-8px);
-          box-shadow: 0 8px 20px rgba(251,146,60,0.3);
+          box-shadow: 0 8px 28px rgba(251,146,60,0.55), 0 0 0 1px rgba(251,146,60,0.2);
         }
         .bar-base.swapping.slide-right {
           animation: swapSlideRight 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards;
@@ -402,7 +437,7 @@ export default function SortingPage() {
                   (element.value / maxValue) * 100,
                   2,
                 );
-                const barState = getBarVisualState(index, currentStepData);
+                const barState = getBarVisualState(index, visualStep);
                 const isSwapLeft = index === swapLeft;
 
                 let slideClass = "";
