@@ -28,41 +28,11 @@ const SPEED_MAP: Record<string, number> = {
 };
 
 // ── Bar visual state ───────────────────────────────────────────────────────────
-type BarVisualState =
-  | "compare"
-  | "swapping"
-  | "just-swapped"
-  | "sorted"
-  | "unsorted";
-
-function computeSwappedSet(
-  steps: SortingStep[],
-  currentStep: number,
-): Set<number> {
-  const set = new Set<number>();
-  if (!steps.length) return set;
-
-  // Find the start of the current pass (right after the last "sorted" step)
-  let passStart = 0;
-  for (let i = currentStep - 1; i >= 0; i--) {
-    if (steps[i].stepType === "sorted") {
-      passStart = i + 1;
-      break;
-    }
-  }
-
-  // Collect all swapping indices from passStart up to (but not including) the current step
-  for (let i = passStart; i < currentStep; i++) {
-    steps[i].swapping?.forEach((idx) => set.add(idx));
-  }
-
-  return set;
-}
+type BarVisualState = "compare" | "swapping" | "sorted" | "unsorted";
 
 function getBarVisualState(
   index: number,
   step: SortingStep | undefined,
-  swappedSet: Set<number>,
 ): BarVisualState {
   if (!step) return "unsorted";
 
@@ -76,9 +46,6 @@ function getBarVisualState(
   if (step.comparing?.includes(index) || step.merging?.includes(index))
     return "compare";
 
-  // Was swapped in this pass — orange flash then fades
-  if (swappedSet.has(index)) return "just-swapped";
-
   return "unsorted";
 }
 
@@ -86,22 +53,14 @@ function getBarVisualState(
 type Msg =
   | { type: "compare"; val1: number; val2: number; needsSwap: boolean }
   | { type: "swapping"; val1: number; val2: number }
-  | { type: "just-swapped" }
-  | { type: "pass-done" }
   | { type: "sorted" }
   | { type: "done" }
   | { type: "idle" };
 
-function deriveMsg(
-  step: SortingStep | undefined,
-  prevStep?: SortingStep,
-): Msg {
+function deriveMsg(step: SortingStep | undefined): Msg {
   if (!step) return { type: "idle" };
 
   if (step.stepType === "complete") return { type: "done" };
-
-  if (step.stepType === "sorted" && !step.comparing && !step.swapping)
-    return { type: "pass-done" };
 
   if (step.swapping && step.swapping.length >= 2) {
     const [i, j] = step.swapping;
@@ -110,11 +69,6 @@ function deriveMsg(
       val1: step.array[i]?.value ?? 0,
       val2: step.array[j]?.value ?? 0,
     };
-  }
-
-  // Immediately after a swap — show orange flash message
-  if (prevStep?.swapping && prevStep.swapping.length >= 2 && !step.swapping) {
-    return { type: "just-swapped" };
   }
 
   if (step.comparing && step.comparing.length >= 2) {
@@ -150,7 +104,7 @@ function SwapIcon({ animKey }: { animKey: number }) {
         position: "absolute",
         top: -58,
         left: "calc(100% + 5px)",
-        transform: "translateX(-50%)",
+        transform: "translate(-50%, 0)",
         zIndex: 10,
         filter: "drop-shadow(0 0 8px rgba(45,212,191,0.8))",
         animation: "spinIn 0.4s forwards, iconPulse 0.6s 0.4s infinite",
@@ -213,20 +167,13 @@ export default function SortingPage() {
   );
   const canStep = !isRunning || isPaused;
 
-  // Swapped set for current pass
-  const swappedSet = useMemo(
-    () => computeSwappedSet(steps, currentStep),
-    [steps, currentStep],
-  );
-
   // Set default array on mount
   useEffect(() => {
     setCustomArray(DEFAULT_ARRAY);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const prevStepData = steps[currentStep - 1] as SortingStep | undefined;
-  const msg = deriveMsg(currentStepData, prevStepData);
+  const msg = deriveMsg(currentStepData);
 
   // Swapping bar indices for the slide animation + icon
   const swappingIndices = currentStepData?.swapping ?? [];
@@ -300,19 +247,14 @@ export default function SortingPage() {
           40%     { transform: translateY(-8px); }
           70%     { transform: translateY(-4px); }
         }
-        @keyframes orangeFlash {
-          0%   { outline-color: #fb923c; box-shadow: 0 4px 14px rgba(251,146,60,0.3); }
-          60%  { outline-color: #fb923c; box-shadow: 0 4px 14px rgba(251,146,60,0.3); }
-          100% { outline-color: transparent; box-shadow: none; }
-        }
         @keyframes spinIn {
-          0%   { opacity: 0; transform: translateX(-50%) scale(0.3) rotate(-120deg); }
-          60%  { opacity: 1; transform: translateX(-50%) scale(1.2) rotate(15deg); }
-          100% { opacity: 1; transform: translateX(-50%) scale(1)   rotate(0deg); }
+          0%   { opacity: 0; transform: translate(-50%,0) scale(0.3) rotate(-120deg); }
+          60%  { opacity: 1; transform: translate(-50%,0) scale(1.2) rotate(15deg); }
+          100% { opacity: 1; transform: translate(-50%,0) scale(1)   rotate(0deg); }
         }
         @keyframes iconPulse {
-          0%,100% { transform: translateX(-50%) scale(1);   }
-          50%     { transform: translateX(-50%) scale(1.1); }
+          0%,100% { transform: translate(-50%,0) scale(1);   }
+          50%     { transform: translate(-50%,0) scale(1.1); }
         }
         @keyframes swapSlideRight {
           0%   { transform: translateY(-8px) translateX(0); }
@@ -325,12 +267,8 @@ export default function SortingPage() {
 
         .bar-base {
           background: #2a3350;
-          outline: 2px solid transparent;
-          outline-offset: 4px;
+          outline: none;
           border-radius: 6px 6px 0 0;
-          transition: transform 0.35s cubic-bezier(0.34,1.4,0.64,1),
-                      outline 0.25s ease,
-                      box-shadow 0.3s ease;
           position: relative;
           width: 100%;
         }
@@ -338,13 +276,13 @@ export default function SortingPage() {
           outline: 2.5px solid #6FB5FF;
           outline-offset: 4px;
           box-shadow: 0 4px 14px rgba(111,181,255,0.2);
-          animation: gentleBounce 0.7s cubic-bezier(0.34,1.4,0.64,1) infinite;
+          animation: gentleBounce 0.7s infinite;
         }
         .bar-base.swapping {
-          outline: 2.5px solid #6FB5FF;
-          outline-offset: 4px;
-          box-shadow: 0 4px 14px rgba(111,181,255,0.2);
+          background: #fb923c;
+          outline: none;
           transform: translateY(-8px);
+          box-shadow: 0 8px 20px rgba(251,146,60,0.3);
         }
         .bar-base.swapping.slide-right {
           animation: swapSlideRight 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards;
@@ -352,14 +290,9 @@ export default function SortingPage() {
         .bar-base.swapping.slide-left {
           animation: swapSlideLeft 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards;
         }
-        .bar-base.just-swapped {
-          background: #2a3350;
-          transform: translateY(0);
-          animation: orangeFlash 0.6s ease forwards;
-        }
         .bar-base.sorted {
           background: #22c55e;
-          outline: 2px solid transparent;
+          outline: none;
           animation: none;
         }
       `}</style>
@@ -469,11 +402,7 @@ export default function SortingPage() {
                   (element.value / maxValue) * 100,
                   2,
                 );
-                const barState = getBarVisualState(
-                  index,
-                  currentStepData,
-                  swappedSet,
-                );
+                const barState = getBarVisualState(index, currentStepData);
                 const isSwapLeft = index === swapLeft;
 
                 let slideClass = "";
@@ -532,19 +461,17 @@ export default function SortingPage() {
           >
             {/* Icon */}
             <span style={{ fontSize: 15, flexShrink: 0 }}>
-              {msg.type === "compare"
+              {msg.type === "compare" && msg.needsSwap
                 ? "🔍"
-                : msg.type === "swapping"
-                  ? "⇄"
-                  : msg.type === "just-swapped"
-                    ? "🟠"
-                    : msg.type === "pass-done"
-                      ? "✔️"
-                      : msg.type === "sorted"
-                        ? "✅"
-                        : msg.type === "done"
-                          ? "🎉"
-                          : "🔍"}
+                : msg.type === "compare" && !msg.needsSwap
+                  ? "✓"
+                  : msg.type === "swapping"
+                    ? "⇄"
+                    : msg.type === "sorted"
+                      ? "✅"
+                      : msg.type === "done"
+                        ? "🎉"
+                        : "🔍"}
             </span>
 
             {/* Title + Sub */}
@@ -558,26 +485,23 @@ export default function SortingPage() {
                   marginBottom: 2,
                 }}
               >
-                {msg.type === "compare" && (
+                {msg.type === "compare" && msg.needsSwap && (
                   <>
                     Comparing{" "}
                     <span style={{ color: "#6FB5FF" }}>{msg.val1}</span> and{" "}
                     <span style={{ color: "#6FB5FF" }}>{msg.val2}</span>
                   </>
                 )}
+                {msg.type === "compare" && !msg.needsSwap && "No swap needed"}
                 {msg.type === "swapping" && (
                   <>
                     Swapping{" "}
-                    <span style={{ color: "#6FB5FF" }}>{msg.val1}</span> and{" "}
-                    <span style={{ color: "#6FB5FF" }}>{msg.val2}</span>
+                    <span style={{ color: "#fb923c" }}>{msg.val1}</span> and{" "}
+                    <span style={{ color: "#fb923c" }}>{msg.val2}</span>
                   </>
                 )}
-                {msg.type === "just-swapped" && (
-                  <span style={{ color: "#fb923c" }}>Swapped!</span>
-                )}
-                {msg.type === "pass-done" && "Pass complete!"}
                 {msg.type === "sorted" && (
-                  <span style={{ color: "#22c55e" }}>Element sorted!</span>
+                  <span style={{ color: "#22c55e" }}>Sorted!</span>
                 )}
                 {msg.type === "done" && "Array fully sorted!"}
                 {msg.type === "idle" && "Press Play to start"}
@@ -591,17 +515,13 @@ export default function SortingPage() {
                   color: "#6b7a99",
                 }}
               >
-                {msg.type === "compare" &&
-                  (msg.needsSwap
-                    ? `${msg.val1} is greater — swap needed!`
-                    : "Already in order!")}
+                {msg.type === "compare" && msg.needsSwap &&
+                  `${msg.val1} is greater — swap needed!`}
+                {msg.type === "compare" && !msg.needsSwap &&
+                  `${msg.val1} and ${msg.val2} are already in order.`}
                 {msg.type === "swapping" && "Bars sliding to new positions!"}
-                {msg.type === "just-swapped" &&
-                  "Orange confirms the swap — fading now!"}
-                {msg.type === "pass-done" &&
-                  "Orange outlines fading — ready for next pass."}
                 {msg.type === "sorted" &&
-                  "This element is now in its correct position."}
+                  "This element is in its correct position."}
                 {msg.type === "done" && "All elements are in their correct order."}
                 {msg.type === "idle" && "Choose an algorithm and press play."}
               </div>
@@ -700,7 +620,7 @@ export default function SortingPage() {
               </span>
             </div>
 
-            {/* Comparing + Swapping */}
+            {/* Comparing */}
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div
                 style={{
@@ -720,19 +640,18 @@ export default function SortingPage() {
                   color: "#3a4460",
                 }}
               >
-                Comparing + Swapping
+                Comparing
               </span>
             </div>
 
-            {/* After swap */}
+            {/* Swapping */}
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div
                 style={{
                   width: 9,
                   height: 9,
                   borderRadius: 2,
-                  background: "#2a3350",
-                  border: "1.5px solid #fb923c",
+                  background: "#fb923c",
                   flexShrink: 0,
                 }}
               />
@@ -744,7 +663,7 @@ export default function SortingPage() {
                   color: "#3a4460",
                 }}
               >
-                Just swapped
+                Swapping
               </span>
             </div>
 
