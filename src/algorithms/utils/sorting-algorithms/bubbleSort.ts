@@ -38,6 +38,16 @@ function bubbleSort(array: ArrayElement[]): SortingStep[] {
     // The element at (n - 1 - i) is now confirmed sorted
     sorted.push(n - 1 - i);
 
+    // If this is the last pass (natural end or early exit), any remaining elements
+    // are implicitly sorted — include them now so they turn green in the same step
+    const isLastPass = i === n - 2 || !swapped;
+    if (isLastPass) {
+      const sortedSet = new Set(sorted);
+      for (let k = 0; k < n; k++) {
+        if (!sortedSet.has(k)) sorted.push(k);
+      }
+    }
+
     steps.push({
       array: arr.map((e) => ({ ...e })),
       stepType: "sorted",

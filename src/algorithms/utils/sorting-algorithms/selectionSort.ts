@@ -69,6 +69,15 @@ export const selectionSort = (array: ArrayElement[]): SortingStep[] => {
     });
   }
 
+  // Mark the last element as sorted (loop only runs n-1 times, leaving index n-1 implicit)
+  steps.push({
+    array: arr.map((e) => ({ ...e })),
+    stepType: "sorted",
+    sorted: Array.from({ length: n }, (_, i) => i),
+    isMajorStep: true,
+    message: `${arr[n - 1].value} is in its final position`,
+  });
+
   steps.push({
     array: arr.map((e) => ({ ...e })),
     stepType: "complete",

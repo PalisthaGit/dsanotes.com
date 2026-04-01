@@ -4,8 +4,8 @@ import { useSortingEngine } from "@/hooks/use-sorting-engine";
 import { useCallback, useState } from "react";
 import { useArray } from "./use-array";
 
-export const useSortVisualization = (defaultSize = 20) => {
-  const [speed, setSpeed] = useState([50]);
+export const useSortVisualization = (defaultSize = 20, initialAlgorithm = "bubble") => {
+  const [speed, setSpeed] = useState([1000]);
   const [isStepMode, setIsStepMode] = useState(false);
 
   const {
@@ -33,10 +33,11 @@ export const useSortVisualization = (defaultSize = 20) => {
     stepForward,
     generateSteps,
     startExecuting,
+    pauseAtCurrentStep,
     clearTimeouts,
     algorithm,
     setAlgorithm,
-  } = useSortingEngine({ array, setArray, setComparisons, setSwaps });
+  } = useSortingEngine({ array, setArray, setComparisons, setSwaps, initialAlgorithm });
 
   const startSorting = useCallback(() => {
     clearTimeouts();
@@ -108,6 +109,8 @@ export const useSortVisualization = (defaultSize = 20) => {
     handleStopSorting,
     handleSeekToStep,
     stepForward,
+    generateSteps,
+    pauseAtCurrentStep,
     resetArray,
     generateArray,
     setCustomArray,

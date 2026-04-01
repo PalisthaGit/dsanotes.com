@@ -12,13 +12,15 @@ export const useSortingEngine = ({
   setArray,
   setComparisons,
   setSwaps,
+  initialAlgorithm = "bubble",
 }: {
   array: ArrayElement[];
   setArray: (arr: ArrayElement[]) => void;
   setComparisons: (count: number) => void;
   setSwaps: (count: number) => void;
+  initialAlgorithm?: string;
 }) => {
-  const [algorithm, setAlgorithm] = useState<SortingAlgorithmKey>("bubble");
+  const [algorithm, setAlgorithm] = useState<SortingAlgorithmKey>(initialAlgorithm);
   const [steps, setSteps] = useState<SortingStep[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -100,8 +102,17 @@ export const useSortingEngine = ({
       () => {
         executeSteps(stepsToRun, index + 1, speed);
       },
-      1000 - speed * 10,
+      speed,
     );
+  };
+
+  // Put the engine into a "paused at current step" state so that pressing Play
+  // resumes from currentStep+1 instead of restarting from 0.
+  const pauseAtCurrentStep = () => {
+    setIsRunning(true);
+    isRunningRef.current = true;
+    setIsPaused(true);
+    isPausedRef.current = true;
   };
 
   // Synchronously sets both state and ref before executing —
@@ -165,6 +176,7 @@ export const useSortingEngine = ({
     executeSteps,
     pauseResume,
     stepForward,
+    pauseAtCurrentStep,
     clearTimeouts,
   };
 };

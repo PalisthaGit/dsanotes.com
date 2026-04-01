@@ -22,8 +22,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DSANotes",
-  description: "Learn and visualize Data Structures and Algorithms",
+  title: {
+    default: "DSANotes",
+    template: "%s | DSANotes",
+  },
+  description:
+    "Interactive visualizations and explanations for Data Structures and Algorithms. Learn sorting, searching, pathfinding, and more — step by step.",
 };
 
 export default function RootLayout({

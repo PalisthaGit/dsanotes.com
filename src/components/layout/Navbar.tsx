@@ -8,7 +8,7 @@ const navLinks = [
   { label: 'Visualizer', href: '/visualizer' },
   { label: 'Data Structures', href: '/data-structures' },
   { label: 'Problems', href: '/problems' },
-  { label: 'Learn DSA', href: '/learn' },
+  { label: 'Learn DSA', href: '/learn-dsa' },
 ]
 
 export default function Navbar() {
