@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  type CSSProperties,
   useCallback,
   useEffect,
   useMemo,
@@ -23,150 +22,159 @@ const ALGORITHMS = [
 ];
 
 const SPEED_MAP: Record<string, number> = {
-  "0.5×": 20,
-  "1×": 60,
-  "2×": 85,
+  "0.5×": 2000,
+  "1×": 1000,
+  "2×": 400,
 };
 
-const LEGEND = [
-  { label: "Unsorted", color: "#2a3350" },
-  { label: "Comparing", color: "#6FB5FF" },
-  { label: "Swapping", color: "#fb923c" },
-  { label: "Sorted", color: "#22c55e" },
-];
+// ── Bar visual state ───────────────────────────────────────────────────────────
+type BarVisualState =
+  | "compare"
+  | "swapping"
+  | "just-swapped"
+  | "sorted"
+  | "unsorted";
 
-// ── Bar helpers ───────────────────────────────────────────────────────────────
-type BarState = "sorted" | "swapping" | "comparing" | "unsorted";
+function computeSwappedSet(
+  steps: SortingStep[],
+  currentStep: number,
+): Set<number> {
+  const set = new Set<number>();
+  if (!steps.length) return set;
 
-function getBarState(index: number, step: SortingStep | undefined): BarState {
+  // Find the start of the current pass (right after the last "sorted" step)
+  let passStart = 0;
+  for (let i = currentStep - 1; i >= 0; i--) {
+    if (steps[i].stepType === "sorted") {
+      passStart = i + 1;
+      break;
+    }
+  }
+
+  // Collect all swapping indices from passStart up to (but not including) the current step
+  for (let i = passStart; i < currentStep; i++) {
+    steps[i].swapping?.forEach((idx) => set.add(idx));
+  }
+
+  return set;
+}
+
+function getBarVisualState(
+  index: number,
+  step: SortingStep | undefined,
+  swappedSet: Set<number>,
+): BarVisualState {
   if (!step) return "unsorted";
+
+  // Permanently sorted — highest priority
   if (step.sorted?.includes(index)) return "sorted";
+
+  // Currently swapping
   if (step.swapping?.includes(index)) return "swapping";
+
+  // Currently comparing
   if (step.comparing?.includes(index) || step.merging?.includes(index))
-    return "comparing";
+    return "compare";
+
+  // Was swapped in this pass — orange flash then fades
+  if (swappedSet.has(index)) return "just-swapped";
+
   return "unsorted";
 }
 
-function getBarStyle(state: BarState): CSSProperties {
-  switch (state) {
-    case "sorted":
-      return { backgroundColor: "#22c55e" };
-    case "swapping":
-      return {
-        backgroundColor: "#fb923c",
-        boxShadow: "0 0 20px rgba(251,146,60,0.5)",
-      };
-    case "comparing":
-      return {
-        backgroundColor: "#6FB5FF",
-        boxShadow: "0 0 16px rgba(111,181,255,0.5)",
-      };
-    default:
-      return { backgroundColor: "#2a3350" };
-  }
-}
-
 // ── Message derivation ────────────────────────────────────────────────────────
-type MessageData =
-  | { type: "comparing"; val1: number; val2: number; needsSwap: boolean }
+type Msg =
+  | { type: "compare"; val1: number; val2: number; needsSwap: boolean }
   | { type: "swapping"; val1: number; val2: number }
+  | { type: "just-swapped" }
+  | { type: "pass-done" }
   | { type: "sorted" }
   | { type: "done" }
-  | { type: "info"; text: string }
   | { type: "idle" };
 
-function deriveMessage(step: SortingStep | undefined): MessageData {
+function deriveMsg(
+  step: SortingStep | undefined,
+  prevStep?: SortingStep,
+): Msg {
   if (!step) return { type: "idle" };
 
-  const { stepType, array, comparing, swapping, sorted } = step;
+  if (step.stepType === "complete") return { type: "done" };
 
-  if (stepType === "complete") return { type: "done" };
+  if (step.stepType === "sorted" && !step.comparing && !step.swapping)
+    return { type: "pass-done" };
 
-  if (swapping && swapping.length >= 2) {
-    const [i, j] = swapping;
+  if (step.swapping && step.swapping.length >= 2) {
+    const [i, j] = step.swapping;
     return {
       type: "swapping",
-      val1: array[i]?.value ?? 0,
-      val2: array[j]?.value ?? 0,
+      val1: step.array[i]?.value ?? 0,
+      val2: step.array[j]?.value ?? 0,
     };
   }
 
-  if (comparing && comparing.length >= 2) {
-    const [i, j] = comparing;
-    const val1 = array[i]?.value ?? 0;
-    const val2 = array[j]?.value ?? 0;
-    return { type: "comparing", val1, val2, needsSwap: val1 > val2 };
+  // Immediately after a swap — show orange flash message
+  if (prevStep?.swapping && prevStep.swapping.length >= 2 && !step.swapping) {
+    return { type: "just-swapped" };
+  }
+
+  if (step.comparing && step.comparing.length >= 2) {
+    const [i, j] = step.comparing;
+    const val1 = step.array[i]?.value ?? 0;
+    const val2 = step.array[j]?.value ?? 0;
+    return { type: "compare", val1, val2, needsSwap: val1 > val2 };
   }
 
   if (
-    stepType === "sorted" &&
-    sorted &&
-    sorted.length > 0 &&
-    !comparing &&
-    !swapping
-  ) {
+    step.stepType === "sorted" &&
+    step.sorted &&
+    step.sorted.length > 0 &&
+    !step.comparing &&
+    !step.swapping
+  )
     return { type: "sorted" };
-  }
-
-  if (step.message) return { type: "info", text: step.message };
 
   return { type: "idle" };
 }
 
-// ── Swap icon SVG ─────────────────────────────────────────────────────────────
+// ── Swap icon ─────────────────────────────────────────────────────────────────
 function SwapIcon({ animKey }: { animKey: number }) {
   return (
     <svg
       key={animKey}
-      width={52}
-      height={52}
+      width={42}
+      height={42}
       viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       style={{
         position: "absolute",
-        left: "calc(100% - 20px)",
         top: -58,
+        left: "calc(100% + 5px)",
+        transform: "translateX(-50%)",
         zIndex: 10,
-        filter: "drop-shadow(0 0 10px rgba(45,212,191,0.6))",
-        animation:
-          "swapIconIn 0.45s cubic-bezier(0.34,1.4,0.64,1) forwards, swapIconPulse 0.7s ease-in-out 0.45s infinite",
+        filter: "drop-shadow(0 0 8px rgba(45,212,191,0.8))",
+        animation: "spinIn 0.4s forwards, iconPulse 0.6s 0.4s infinite",
       }}
     >
-      {/* Top arrow: curves right */}
+      {/* Top arrow — goes right */}
       <path
-        d="M 10 42 C 12 20, 72 18, 78 36"
+        d="M 10 40 Q 50 5 90 40"
         stroke="#2dd4bf"
-        strokeWidth={10}
+        strokeWidth={11}
         strokeLinecap="round"
         fill="none"
       />
-      {/* Top arrowhead */}
-      <polyline
-        points="62,20 80,36 68,52"
-        stroke="#2dd4bf"
-        strokeWidth={10}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Bottom arrow: curves left */}
+      <polygon points="80,26 96,44 74,48" fill="#2dd4bf" />
+
+      {/* Bottom arrow — goes left */}
       <path
-        d="M 90 58 C 88 80, 28 82, 22 64"
+        d="M 90 60 Q 50 95 10 60"
         stroke="#2dd4bf"
-        strokeWidth={10}
+        strokeWidth={11}
         strokeLinecap="round"
         fill="none"
       />
-      {/* Bottom arrowhead */}
-      <polyline
-        points="38,80 20,64 32,48"
-        stroke="#2dd4bf"
-        strokeWidth={10}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
+      <polygon points="20,74 4,56 26,52" fill="#2dd4bf" />
     </svg>
   );
 }
@@ -205,18 +213,24 @@ export default function SortingPage() {
   );
   const canStep = !isRunning || isPaused;
 
+  // Swapped set for current pass
+  const swappedSet = useMemo(
+    () => computeSwappedSet(steps, currentStep),
+    [steps, currentStep],
+  );
+
   // Set default array on mount
   useEffect(() => {
     setCustomArray(DEFAULT_ARRAY);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Derive message
-  const msg = deriveMessage(currentStepData);
+  const prevStepData = steps[currentStep - 1] as SortingStep | undefined;
+  const msg = deriveMsg(currentStepData, prevStepData);
 
-  // Identify swapping bar indices (lower index gets the icon)
+  // Swapping bar indices for the slide animation + icon
   const swappingIndices = currentStepData?.swapping ?? [];
-  const swapLow =
+  const swapLeft =
     swappingIndices.length === 2
       ? Math.min(swappingIndices[0], swappingIndices[1])
       : -1;
@@ -276,26 +290,77 @@ export default function SortingPage() {
     }
   }, [customInput, handleStopSorting, setCustomArray]);
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div style={{ background: "#f2f4f7", minHeight: "100vh" }}>
-      {/* Keyframe animations */}
+      {/* Keyframes + bar classes */}
       <style>{`
-        @keyframes swapIconIn {
-          0%   { transform: scale(0.3) rotate(-120deg); opacity: 0; }
-          100% { transform: scale(1)   rotate(0deg);   opacity: 1; }
+        @keyframes gentleBounce {
+          0%,100% { transform: translateY(0px); }
+          40%     { transform: translateY(-8px); }
+          70%     { transform: translateY(-4px); }
         }
-        @keyframes swapIconPulse {
-          0%, 100% { transform: scale(1);   }
-          50%      { transform: scale(1.1); }
+        @keyframes orangeFlash {
+          0%   { outline-color: #fb923c; box-shadow: 0 4px 14px rgba(251,146,60,0.3); }
+          60%  { outline-color: #fb923c; box-shadow: 0 4px 14px rgba(251,146,60,0.3); }
+          100% { outline-color: transparent; box-shadow: none; }
+        }
+        @keyframes spinIn {
+          0%   { opacity: 0; transform: translateX(-50%) scale(0.3) rotate(-120deg); }
+          60%  { opacity: 1; transform: translateX(-50%) scale(1.2) rotate(15deg); }
+          100% { opacity: 1; transform: translateX(-50%) scale(1)   rotate(0deg); }
+        }
+        @keyframes iconPulse {
+          0%,100% { transform: translateX(-50%) scale(1);   }
+          50%     { transform: translateX(-50%) scale(1.1); }
         }
         @keyframes swapSlideRight {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(calc(100% + 6px)); }
+          0%   { transform: translateY(-8px) translateX(0); }
+          100% { transform: translateY(-8px) translateX(calc(100% + 10px)); }
         }
         @keyframes swapSlideLeft {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(calc(-100% - 6px)); }
+          0%   { transform: translateY(-8px) translateX(0); }
+          100% { transform: translateY(-8px) translateX(calc(-100% - 10px)); }
+        }
+
+        .bar-base {
+          background: #2a3350;
+          outline: 2px solid transparent;
+          outline-offset: 4px;
+          border-radius: 6px 6px 0 0;
+          transition: transform 0.35s cubic-bezier(0.34,1.4,0.64,1),
+                      outline 0.25s ease,
+                      box-shadow 0.3s ease;
+          position: relative;
+          width: 100%;
+        }
+        .bar-base.compare {
+          outline: 2.5px solid #6FB5FF;
+          outline-offset: 4px;
+          box-shadow: 0 4px 14px rgba(111,181,255,0.2);
+          animation: gentleBounce 0.7s cubic-bezier(0.34,1.4,0.64,1) infinite;
+        }
+        .bar-base.swapping {
+          outline: 2.5px solid #6FB5FF;
+          outline-offset: 4px;
+          box-shadow: 0 4px 14px rgba(111,181,255,0.2);
+          transform: translateY(-8px);
+        }
+        .bar-base.swapping.slide-right {
+          animation: swapSlideRight 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards;
+        }
+        .bar-base.swapping.slide-left {
+          animation: swapSlideLeft 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards;
+        }
+        .bar-base.just-swapped {
+          background: #2a3350;
+          transform: translateY(0);
+          animation: orangeFlash 0.6s ease forwards;
+        }
+        .bar-base.sorted {
+          background: #22c55e;
+          outline: 2px solid transparent;
+          animation: none;
         }
       `}</style>
 
@@ -325,7 +390,7 @@ export default function SortingPage() {
 
       <div style={{ padding: "0 48px 48px" }}>
         {/* ── Title + Pill Switcher ── */}
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
           <h1
             style={{
               fontFamily: "Poppins, sans-serif",
@@ -387,15 +452,16 @@ export default function SortingPage() {
           }}
         >
           {/* Bars area */}
-          <div style={{ padding: "36px 36px 28px" }}>
+          <div style={{ padding: "52px 36px 24px" }}>
             <div
               style={{
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "flex-end",
-                height: 260,
-                gap: 6,
+                height: 240,
+                gap: 10,
                 position: "relative",
+                overflow: "visible",
               }}
             >
               {array.map((element, index) => {
@@ -403,53 +469,49 @@ export default function SortingPage() {
                   (element.value / maxValue) * 100,
                   2,
                 );
-                const barState = getBarState(index, currentStepData);
-                const isSwapLow = index === swapLow;
-                const isSwappingBar = swappingIndices.includes(index);
+                const barState = getBarVisualState(
+                  index,
+                  currentStepData,
+                  swappedSet,
+                );
+                const isSwapLeft = index === swapLeft;
 
-                // Slide animation for swapping bars
-                let slideAnim: string | undefined;
-                if (isSwappingBar && swappingIndices.length === 2) {
+                let slideClass = "";
+                if (barState === "swapping" && swappingIndices.length === 2) {
                   const [a, b] = swappingIndices;
-                  if (index === Math.min(a, b)) {
-                    slideAnim = `swapSlideRight 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards`;
-                  } else {
-                    slideAnim = `swapSlideLeft 0.5s cubic-bezier(0.34,1.2,0.64,1) forwards`;
-                  }
+                  slideClass =
+                    index === Math.min(a, b) ? "slide-right" : "slide-left";
                 }
+
+                const stateClass = barState !== "unsorted" ? barState : "";
 
                 return (
                   <div
                     key={index}
-                    style={{
-                      flex: 1,
-                      height: `${heightPct}%`,
-                      borderRadius: "6px 6px 0 0",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                      position: "relative",
-                      animation: slideAnim,
-                      ...getBarStyle(barState),
-                    }}
+                    className={`bar-base ${stateClass} ${slideClass}`}
+                    style={{ flex: 1, height: `${heightPct}%` }}
                   >
+                    {/* Value label — always visible above the bar */}
                     <span
                       style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        marginBottom: 6,
                         fontSize: 13,
                         color: "#fff",
                         fontWeight: 700,
                         lineHeight: 1,
-                        paddingTop: 4,
+                        whiteSpace: "nowrap",
+                        pointerEvents: "none",
                       }}
                     >
                       {element.value}
                     </span>
 
-                    {/* Swap icon — rendered on the lower-index swapping bar */}
-                    {isSwapLow && (
-                      <SwapIcon animKey={currentStep} />
-                    )}
+                    {/* Swap icon — on the left swapping bar */}
+                    {isSwapLeft && <SwapIcon animKey={currentStep} />}
                   </div>
                 );
               })}
@@ -469,21 +531,24 @@ export default function SortingPage() {
             }}
           >
             {/* Icon */}
-            <span style={{ fontSize: 16, flexShrink: 0 }}>
-              {msg.type === "comparing"
+            <span style={{ fontSize: 15, flexShrink: 0 }}>
+              {msg.type === "compare"
                 ? "🔍"
                 : msg.type === "swapping"
                   ? "⇄"
-                  : msg.type === "sorted"
-                    ? "✅"
-                    : msg.type === "done"
-                      ? "🎉"
-                      : "🔍"}
+                  : msg.type === "just-swapped"
+                    ? "🟠"
+                    : msg.type === "pass-done"
+                      ? "✔️"
+                      : msg.type === "sorted"
+                        ? "✅"
+                        : msg.type === "done"
+                          ? "🎉"
+                          : "🔍"}
             </span>
 
             {/* Title + Sub */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              {/* Title */}
               <div
                 style={{
                   fontFamily: "Nunito, sans-serif",
@@ -493,7 +558,7 @@ export default function SortingPage() {
                   marginBottom: 2,
                 }}
               >
-                {msg.type === "comparing" && (
+                {msg.type === "compare" && (
                   <>
                     Comparing{" "}
                     <span style={{ color: "#6FB5FF" }}>{msg.val1}</span> and{" "}
@@ -503,37 +568,42 @@ export default function SortingPage() {
                 {msg.type === "swapping" && (
                   <>
                     Swapping{" "}
-                    <span style={{ color: "#fb923c" }}>{msg.val1}</span> and{" "}
-                    <span style={{ color: "#fb923c" }}>{msg.val2}</span>
+                    <span style={{ color: "#6FB5FF" }}>{msg.val1}</span> and{" "}
+                    <span style={{ color: "#6FB5FF" }}>{msg.val2}</span>
                   </>
                 )}
+                {msg.type === "just-swapped" && (
+                  <span style={{ color: "#fb923c" }}>Swapped!</span>
+                )}
+                {msg.type === "pass-done" && "Pass complete!"}
                 {msg.type === "sorted" && (
-                  <span style={{ color: "#22c55e" }}>Sorted!</span>
+                  <span style={{ color: "#22c55e" }}>Element sorted!</span>
                 )}
                 {msg.type === "done" && "Array fully sorted!"}
-                {msg.type === "info" && msg.text}
                 {msg.type === "idle" && "Press Play to start"}
               </div>
 
-              {/* Sub */}
               <div
                 style={{
                   fontFamily: "Nunito, sans-serif",
                   fontWeight: 600,
-                  fontSize: 12,
+                  fontSize: 11,
                   color: "#6b7a99",
                 }}
               >
-                {msg.type === "comparing" &&
+                {msg.type === "compare" &&
                   (msg.needsSwap
-                    ? `${msg.val1} is greater — a swap is needed!`
-                    : "Already in order — no swap needed.")}
-                {msg.type === "swapping" && "Bars are swapping positions!"}
+                    ? `${msg.val1} is greater — swap needed!`
+                    : "Already in order!")}
+                {msg.type === "swapping" && "Bars sliding to new positions!"}
+                {msg.type === "just-swapped" &&
+                  "Orange confirms the swap — fading now!"}
+                {msg.type === "pass-done" &&
+                  "Orange outlines fading — ready for next pass."}
                 {msg.type === "sorted" &&
                   "This element is now in its correct position."}
                 {msg.type === "done" && "All elements are in their correct order."}
-                {msg.type === "idle" &&
-                  "Choose an algorithm and press play."}
+                {msg.type === "idle" && "Choose an algorithm and press play."}
               </div>
             </div>
 
@@ -600,45 +670,113 @@ export default function SortingPage() {
           <div
             style={{
               display: "flex",
-              gap: 20,
+              gap: 14,
               flexWrap: "wrap",
               paddingBottom: 20,
               paddingLeft: 4,
             }}
           >
-            {LEGEND.map(({ label, color }) => (
+            {/* Unsorted */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div
-                key={label}
-                style={{ display: "flex", alignItems: "center", gap: 6 }}
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: 2,
+                  background: "#2a3350",
+                  border: "1.5px solid #3a4460",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 600,
+                  fontSize: 9,
+                  color: "#3a4460",
+                }}
               >
-                <div
-                  style={{
-                    width: 9,
-                    height: 9,
-                    borderRadius: 2,
-                    background: color,
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: "Nunito, sans-serif",
-                    fontWeight: 600,
-                    fontSize: 10,
-                    color: "#3a4460",
-                  }}
-                >
-                  {label}
-                </span>
-              </div>
-            ))}
+                Unsorted
+              </span>
+            </div>
+
+            {/* Comparing + Swapping */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: 2,
+                  background: "#2a3350",
+                  border: "1.5px solid #6FB5FF",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 600,
+                  fontSize: 9,
+                  color: "#3a4460",
+                }}
+              >
+                Comparing + Swapping
+              </span>
+            </div>
+
+            {/* After swap */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: 2,
+                  background: "#2a3350",
+                  border: "1.5px solid #fb923c",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 600,
+                  fontSize: 9,
+                  color: "#3a4460",
+                }}
+              >
+                Just swapped
+              </span>
+            </div>
+
+            {/* Sorted */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: 2,
+                  background: "#22c55e",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 600,
+                  fontSize: 9,
+                  color: "#3a4460",
+                }}
+              >
+                Sorted
+              </span>
+            </div>
           </div>
 
           {/* Controls bar */}
           <div
             style={{
               background: "#0d1018",
-              padding: "18px 36px",
+              padding: "16px 36px",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -662,7 +800,7 @@ export default function SortingPage() {
               <span style={{ color: "#6b7a99" }}>{totalSteps}</span>
             </div>
 
-            {/* Center — Prev | Play/Pause | Next */}
+            {/* Center — Previous | Play/Pause | Next */}
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <button
                 onClick={handlePrevStep}
@@ -670,10 +808,10 @@ export default function SortingPage() {
                   background: "transparent",
                   border: "0.5px solid #1e2438",
                   borderRadius: 10,
-                  padding: "11px 24px",
+                  padding: "10px 20px",
                   fontFamily: "Nunito, sans-serif",
                   fontWeight: 700,
-                  fontSize: 13,
+                  fontSize: 12,
                   color: "#4a5680",
                   cursor: "pointer",
                 }}
@@ -685,19 +823,15 @@ export default function SortingPage() {
                 onClick={handlePlayPause}
                 style={{
                   borderRadius: 10,
-                  padding: "12px 40px",
+                  padding: "11px 36px",
                   fontFamily: "Nunito, sans-serif",
                   fontWeight: 700,
-                  fontSize: 14,
-                  minWidth: 120,
+                  fontSize: 13,
+                  minWidth: 110,
                   border: "none",
                   cursor: "pointer",
                   ...(isPlaying
-                    ? {
-                        background: "#1e2438",
-                        color: "#6FB5FF",
-                        boxShadow: "none",
-                      }
+                    ? { background: "#1e2438", color: "#6FB5FF" }
                     : {
                         background: "#6FB5FF",
                         color: "#fff",
@@ -714,10 +848,10 @@ export default function SortingPage() {
                   background: "transparent",
                   border: "0.5px solid #1e2438",
                   borderRadius: 10,
-                  padding: "11px 24px",
+                  padding: "10px 20px",
                   fontFamily: "Nunito, sans-serif",
                   fontWeight: 700,
-                  fontSize: 13,
+                  fontSize: 12,
                   color: "#4a5680",
                   cursor: "pointer",
                 }}
@@ -732,7 +866,7 @@ export default function SortingPage() {
                 style={{
                   fontFamily: "Nunito, sans-serif",
                   fontWeight: 700,
-                  fontSize: 12,
+                  fontSize: 11,
                   color: "#3a4460",
                 }}
               >
@@ -786,9 +920,7 @@ export default function SortingPage() {
             + Custom Array
           </button>
 
-          <div
-            style={{ width: 1, height: 16, background: "#d4e6ff" }}
-          />
+          <div style={{ width: 1, height: 16, background: "#d4e6ff" }} />
 
           <button
             onClick={handleReset}
@@ -832,7 +964,6 @@ export default function SortingPage() {
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
             }}
           >
-            {/* Header */}
             <div
               style={{
                 display: "flex",
@@ -899,13 +1030,7 @@ export default function SortingPage() {
               }}
             />
 
-            <p
-              style={{
-                fontSize: 11,
-                color: "#c0c8d8",
-                margin: "0 0 20px",
-              }}
-            >
+            <p style={{ fontSize: 11, color: "#c0c8d8", margin: "0 0 20px" }}>
               Max 20 numbers · values between 1 and 100
             </p>
 
