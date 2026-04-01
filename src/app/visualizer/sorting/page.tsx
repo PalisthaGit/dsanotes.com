@@ -54,7 +54,7 @@ function getBarVisualState(
 type Msg =
   | { type: "compare"; val1: number; val2: number; needsSwap: boolean }
   | { type: "swapping"; val1: number; val2: number }
-  | { type: "sorted" }
+  | { type: "sorted"; val: number }
   | { type: "done" }
   | { type: "idle" };
 
@@ -85,8 +85,10 @@ function deriveMsg(step: SortingStep | undefined): Msg {
     step.sorted.length > 0 &&
     !step.comparing &&
     !step.swapping
-  )
-    return { type: "sorted" };
+  ) {
+    const sortedIdx = step.sorted[step.sorted.length - 1];
+    return { type: "sorted", val: step.array[sortedIdx]?.value ?? 0 };
+  }
 
   return { type: "idle" };
 }
@@ -510,17 +512,15 @@ export default function SortingPage() {
           >
             {/* Icon */}
             <span style={{ fontSize: 15, flexShrink: 0 }}>
-              {msg.type === "compare" && msg.needsSwap
-                ? "🔍"
-                : msg.type === "compare" && !msg.needsSwap
-                  ? "✓"
-                  : msg.type === "swapping"
-                    ? "⇄"
-                    : msg.type === "sorted"
-                      ? "✅"
-                      : msg.type === "done"
-                        ? "🎉"
-                        : "🔍"}
+              {msg.type === "compare"
+                ? "👀"
+                : msg.type === "swapping"
+                  ? "⇄"
+                  : msg.type === "sorted"
+                    ? "✅"
+                    : msg.type === "done"
+                      ? "🎉"
+                      : "👀"}
             </span>
 
             {/* Title + Sub */}
@@ -534,14 +534,13 @@ export default function SortingPage() {
                   marginBottom: 2,
                 }}
               >
-                {msg.type === "compare" && msg.needsSwap && (
+                {msg.type === "compare" && (
                   <>
-                    Comparing{" "}
+                    Looking at{" "}
                     <span style={{ color: "#6FB5FF" }}>{msg.val1}</span> and{" "}
                     <span style={{ color: "#6FB5FF" }}>{msg.val2}</span>
                   </>
                 )}
-                {msg.type === "compare" && !msg.needsSwap && "No swap needed"}
                 {msg.type === "swapping" && (
                   <>
                     Swapping{" "}
@@ -550,9 +549,11 @@ export default function SortingPage() {
                   </>
                 )}
                 {msg.type === "sorted" && (
-                  <span style={{ color: "#22c55e" }}>Sorted!</span>
+                  <>
+                    <span style={{ color: "#22c55e" }}>{msg.val}</span> is done!
+                  </>
                 )}
-                {msg.type === "done" && "Array fully sorted!"}
+                {msg.type === "done" && "All sorted!"}
                 {msg.type === "idle" && "Press Play to start"}
               </div>
 
@@ -565,13 +566,13 @@ export default function SortingPage() {
                 }}
               >
                 {msg.type === "compare" && msg.needsSwap &&
-                  `${msg.val1} is greater — swap needed!`}
+                  `${msg.val1} is bigger than ${msg.val2}. Swap!`}
                 {msg.type === "compare" && !msg.needsSwap &&
-                  `${msg.val1} and ${msg.val2} are already in order.`}
-                {msg.type === "swapping" && "Bars sliding to new positions!"}
-                {msg.type === "sorted" &&
-                  "This element is in its correct position."}
-                {msg.type === "done" && "All elements are in their correct order."}
+                  `${msg.val1} is smaller than ${msg.val2}. Move on.`}
+                {msg.type === "swapping" &&
+                  `${msg.val1} is bigger than ${msg.val2}.`}
+                {msg.type === "sorted" && "It found its correct spot."}
+                {msg.type === "done" && "Every element is in the right place."}
                 {msg.type === "idle" && "Choose an algorithm and press play."}
               </div>
             </div>
