@@ -197,6 +197,18 @@ export default function MiniSortingVisualizer({
 
   const isDone = atLimit || steps[currentStep]?.stepType === "complete";
 
+  const [didReset, setDidReset] = useState(false);
+
+  const handleResetWithFlag = useCallback(() => {
+    handleReset();
+    setDidReset(true);
+  }, [handleReset]);
+
+  const handlePlayPauseWithFlag = useCallback(() => {
+    setDidReset(false);
+    handlePlayPause();
+  }, [handlePlayPause]);
+
   const nextDisabled = atLimit || currentStep >= steps.length - 1 || !canStep;
   const prevDisabled = currentStep === 0 || !canStep;
 
@@ -369,9 +381,9 @@ export default function MiniSortingVisualizer({
               ‹ Prev
             </button>
 
-            {isDone ? (
+            {isDone && !didReset ? (
               <button
-                onClick={handleReset}
+                onClick={handleResetWithFlag}
                 style={{
                   background: "#22c55e",
                   border: "none",
@@ -388,24 +400,44 @@ export default function MiniSortingVisualizer({
                 ↺ Reset
               </button>
             ) : (
-              <button
-                onClick={handlePlayPause}
-                style={{
-                  background: "#6FB5FF",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "7px 20px",
-                  fontFamily: "Nunito, sans-serif",
-                  fontWeight: 700,
-                  fontSize: 12,
-                  color: "#fff",
-                  cursor: "pointer",
-                  minWidth: 80,
-                  boxShadow: "0 2px 10px rgba(111,181,255,0.35)",
-                }}
-              >
-                {isPlaying ? "Pause" : "Play"}
-              </button>
+              <>
+                {didReset && (
+                  <button
+                    onClick={handleResetWithFlag}
+                    style={{
+                      background: "#e8edf5",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "7px 14px",
+                      fontFamily: "Nunito, sans-serif",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      color: "#4b5563",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ↺
+                  </button>
+                )}
+                <button
+                  onClick={handlePlayPauseWithFlag}
+                  style={{
+                    background: "#6FB5FF",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "7px 20px",
+                    fontFamily: "Nunito, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 12,
+                    color: "#fff",
+                    cursor: "pointer",
+                    minWidth: 80,
+                    boxShadow: "0 2px 10px rgba(111,181,255,0.35)",
+                  }}
+                >
+                  {isPlaying ? "Pause" : "Play"}
+                </button>
+              </>
             )}
 
             <button

@@ -4,9 +4,9 @@ import { LearnSidebar } from '../sidebar'
 import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Bubble Sort Explained | Learn DSA',
+  title: 'Insertion Sort Explained | Learn DSA',
   description:
-    'Learn how Bubble Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how Insertion Sort works step by step with examples, code, and complexity analysis.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -81,7 +81,6 @@ function Paragraph({ children }: { children: React.ReactNode }) {
   )
 }
 
-
 function CodeBlock({ code }: { code: string }) {
   return (
     <div
@@ -111,9 +110,9 @@ function CodeBlock({ code }: { code: string }) {
 
 function ComplexityTable() {
   const rows = [
-    { case: 'Best', value: 'O(n)', note: 'Already sorted — detects early with swap flag' },
-    { case: 'Average', value: 'O(n²)', note: 'Random order — many comparisons needed' },
-    { case: 'Worst', value: 'O(n²)', note: 'Reverse sorted — maximum swaps required' },
+    { case: 'Best', value: 'O(n)', note: 'Already sorted — inner loop never executes' },
+    { case: 'Average', value: 'O(n²)', note: 'Random order — many comparisons and shifts' },
+    { case: 'Worst', value: 'O(n²)', note: 'Reverse sorted — maximum shifts every pass' },
   ]
 
   return (
@@ -187,35 +186,30 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'Start with the first number in the list.',
-  'Compare it with the number next to it.',
-  'If the first number is bigger, swap them.',
-  'Move to the next pair.',
-  'Keep doing this until you reach the end.',
-  'Now the largest number is at the end.',
-  'Repeat from the beginning, but stop one step earlier.',
-  'Keep repeating until the list is sorted.',
+  'Start with the second element (index 1).',
+  'Compare it with elements to its left.',
+  'Shift larger elements one position right.',
+  'Insert the current element into the correct gap.',
+  'Move to the next element.',
+  'Repeat until the whole array is sorted.',
 ]
 
-const JAVA_CODE = `class BubbleSortExample {
+const JAVA_CODE = `class InsertionSortExample {
     public static void main(String[] args) {
-        int[] arr = {222, 40, 66, 99, 12, 5};
+        int[] arr = {38, 27, 43, 12, 52, 19};
 
-        // Bubble sort starts here
-        for (int i = 0; i < arr.length - 1; i++) {
-            // Go from the beginning up to the part that's not sorted yet
-            for (int j = 0; j < arr.length - 1 - i; j++) {
-                // Compare current number with the next one
-                if (arr[j] > arr[j + 1]) {
-                    // Swap if the left number is bigger than the right one
-                    int temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                }
+        for (int i = 1; i < arr.length; i++) {
+            int key = arr[i];
+            int j = i - 1;
+
+            // Shift elements greater than key one position to the right
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j--;
             }
+            arr[j + 1] = key;
         }
 
-        // Print the sorted array
         System.out.println("Sorted array:");
         for (int num : arr) {
             System.out.print(num + " ");
@@ -223,7 +217,7 @@ const JAVA_CODE = `class BubbleSortExample {
     }
 }`
 
-export default function BubbleSortPage() {
+export default function InsertionSortPage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -242,7 +236,7 @@ export default function BubbleSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Bubble Sort</span>
+          <span style={{ color: '#6FB5FF' }}>Insertion Sort</span>
         </div>
 
         {/* Two-column layout */}
@@ -285,7 +279,7 @@ export default function BubbleSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Bubble Sort
+              Insertion Sort
             </h1>
 
             {/* Meta row */}
@@ -306,7 +300,7 @@ export default function BubbleSortPage() {
                   color: '#6b7280',
                 }}
               >
-                🕐 8 min read
+                🕐 7 min read
               </span>
               <span
                 style={{
@@ -322,118 +316,68 @@ export default function BubbleSortPage() {
 
             {/* Inbuilt visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" />
+              <MiniSortingVisualizer initialAlgorithm="insertion" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Bubble sort is one of the simplest ways to sort a list. It works by looking at two
-              adjacent (next to each other) numbers at a time and swapping them if they&apos;re in
-              the wrong order. We repeat this process until everything is in the correct position.
+              Insertion sort builds the sorted list one element at a time. It picks each element and
+              inserts it into the correct position within the already-sorted portion — like sorting a
+              hand of playing cards.
             </CalloutBox>
 
-            <Paragraph>
-              Let&apos;s take a look at how this works with an example. Click the play button to
-              watch the sorting step by step.
-            </Paragraph>
-
             {/* ── Section 1 ── */}
-            <SectionHeading>Bubble Sort Step by Step</SectionHeading>
-
-            <Paragraph>Every sorting method arranges data in the correct order.</Paragraph>
+            <SectionHeading>How Insertion Sort Works</SectionHeading>
 
             <Paragraph>
-              Bubble sort does this by slowly moving the largest number toward the end of the list,
-              one round at a time. This gradual movement is often compared to a bubble rising, which
-              is where the name &quot;bubble sort&quot; comes from.
+              The array is split into a sorted part (left) and unsorted part (right). We pick the
+              first unsorted element and slide it left until it&apos;s in the right spot.
             </Paragraph>
 
             <Paragraph>
-              We begin by sorting the last element first, then the second-last, and so on. This
-              continues until only one element remains, which will already be in the correct spot.
+              <strong>Starting array:</strong> [38, 27, 43, 12, 52, 19]
             </Paragraph>
 
-            {/* Sub: last element */}
-            <SubHeading>Sorting the last element</SubHeading>
+            <SubHeading>Inserting 27</SubHeading>
 
             <Paragraph>
-              <strong>Starting array:</strong> [222, 40, 66, 99, 12, 5]
+              38 is already sorted. Now we look at 27. Since 27 &lt; 38, we shift 38 right and
+              place 27 before it.
             </Paragraph>
 
-            <Paragraph>
-              We want to make sure the largest number ends up in the last position.
-            </Paragraph>
-
-            <Paragraph>
-              First, compare 222 and 40. Since 222 is greater, we swap them.
-            </Paragraph>
-
-            <CalloutBox>Updated array: [40, 222, 66, 99, 12, 5]</CalloutBox>
-
-            <Paragraph>
-              Next, compare the second and third elements: 222 and 66. Again, 222 is greater, so we
-              swap them.
-            </Paragraph>
-
-            <CalloutBox>Updated array: [40, 66, 222, 99, 12, 5]</CalloutBox>
-
-            <Paragraph>
-              We continue comparing each pair of adjacent elements and swapping when needed until we
-              reach the end of the list.
-            </Paragraph>
+            <CalloutBox>Updated array: [27, 38, 43, 12, 52, 19]</CalloutBox>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={1} />
+              <MiniSortingVisualizer initialAlgorithm="insertion" maxSortedCount={2} />
             </div>
 
-            {/* Sub: second-last */}
-            <SubHeading>Sorting the second-last element</SubHeading>
+            <SubHeading>Inserting 43</SubHeading>
 
             <Paragraph>
-              Now that the largest element is in place, we don&apos;t need to touch it again.
-            </Paragraph>
-
-            <Paragraph>
-              Next, we&apos;ll move the second-largest number into the second-last position using the
-              same steps. We compare and swap adjacent pairs, but only up to the second-last index.
+              43 &gt; 38, so it stays in place. No shifting needed.
             </Paragraph>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={2} />
+              <MiniSortingVisualizer initialAlgorithm="insertion" maxSortedCount={3} />
             </div>
 
-            {/* Sub: third-last */}
-            <SubHeading>Sorting the third-last element</SubHeading>
+            <SubHeading>Inserting the rest</SubHeading>
 
             <Paragraph>
-              We repeat the same process again, this time stopping one step earlier — up to the
-              third-last index.
+              We continue this process for 12, 52, and 19, each time finding the right spot.
             </Paragraph>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={3} />
-            </div>
-
-            {/* Sub: the rest */}
-            <SubHeading>Sorting the Rest of the Elements</SubHeading>
-
-            <Paragraph>
-              We continue this pattern until the second element is in the correct position. At that
-              point, the first element is also automatically in place because everything else around
-              it is already sorted.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" startFromSortedCount={3} />
+              <MiniSortingVisualizer initialAlgorithm="insertion" startFromSortedCount={3} />
             </div>
 
             <CalloutBox>
-              This is bubble sort. One pair at a time. One round at a time. Each round pushes the
-              next biggest number to where it belongs.
+              Insertion sort is efficient for small or nearly-sorted lists. Each pass places exactly
+              one element into its final position.
             </CalloutBox>
 
             {/* ── Section 2 ── */}
-            <SectionHeading>Bubble Sort Algorithm (Step by Step)</SectionHeading>
+            <SectionHeading>Insertion Sort Algorithm (Step by Step)</SectionHeading>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -454,41 +398,21 @@ export default function BubbleSortPage() {
             </ol>
 
             {/* ── Section 3 ── */}
-            <SectionHeading>Bubble Sort Code</SectionHeading>
+            <SectionHeading>Insertion Sort Code</SectionHeading>
 
             <CodeBlock code={JAVA_CODE} />
 
             {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Bubble Sort</SectionHeading>
-
-            <SubHeading>Time Complexity</SubHeading>
-
-            <Paragraph>
-              <strong>Worst Case:</strong> When the list is in reverse order, Bubble Sort has to go
-              through the entire list and swap almost everything. The number of operations is roughly
-              n + (n−1) + (n−2) + … + 1, which gives us <strong>O(n²)</strong>.
-            </Paragraph>
-
-            <Paragraph>
-              <strong>Best Case:</strong> When the list is already sorted, a version of Bubble Sort
-              with a <em>swapped</em> flag can detect this and stop after one pass —{' '}
-              <strong>O(n)</strong>.
-            </Paragraph>
-
-            <Paragraph>
-              <strong>Average Case:</strong> For randomly ordered lists, Bubble Sort still does many
-              comparisons and swaps, so on average it is also <strong>O(n²)</strong>.
-            </Paragraph>
+            <SectionHeading>Complexity of Insertion Sort</SectionHeading>
 
             <ComplexityTable />
 
             <SubHeading>Space Complexity</SubHeading>
 
             <Paragraph>
-              <strong>O(1) — Constant space.</strong> Bubble Sort sorts the list in-place. It
-              doesn&apos;t use any extra arrays or data structures — only a few loop variables and a
-              temporary swap variable. No matter how large the input, the extra memory used stays the
-              same.
+              <strong>O(1) — constant space.</strong> Insertion sort sorts in-place using only a
+              temporary <code>key</code> variable. No extra arrays are needed regardless of input
+              size.
             </Paragraph>
 
             {/* Closing card */}
@@ -522,15 +446,14 @@ export default function BubbleSortPage() {
                   marginBottom: 16,
                 }}
               >
-                Bubble Sort is easy to understand and a great starting point for learning sorting
-                algorithms. It may not be the fastest, but it&apos;s one of the clearest examples of
-                how sorting works under the hood. Once you&apos;re comfortable with this, you&apos;ll
-                be ready to explore faster sorts like Insertion Sort, Merge Sort, and Quick Sort.
+                Insertion sort is simple, intuitive, and great for small or nearly-sorted data. Now
+                that you&apos;ve mastered it, you&apos;re ready to explore more powerful divide-and-conquer
+                algorithms like Merge Sort and Quick Sort.
               </p>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
-                  href="/learn-dsa/insertion-sort"
+                  href="/learn-dsa/merge-sort"
                   style={{
                     background: '#6FB5FF',
                     color: '#fff',
@@ -542,7 +465,7 @@ export default function BubbleSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Next: Insertion Sort →
+                  Next: Merge Sort →
                 </Link>
                 <Link
                   href="/visualizer/sorting"

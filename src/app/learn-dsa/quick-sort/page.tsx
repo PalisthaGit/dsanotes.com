@@ -4,9 +4,9 @@ import { LearnSidebar } from '../sidebar'
 import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Bubble Sort Explained | Learn DSA',
+  title: 'Quick Sort Explained | Learn DSA',
   description:
-    'Learn how Bubble Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how Quick Sort works step by step with examples, code, and complexity analysis.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -81,7 +81,6 @@ function Paragraph({ children }: { children: React.ReactNode }) {
   )
 }
 
-
 function CodeBlock({ code }: { code: string }) {
   return (
     <div
@@ -111,9 +110,9 @@ function CodeBlock({ code }: { code: string }) {
 
 function ComplexityTable() {
   const rows = [
-    { case: 'Best', value: 'O(n)', note: 'Already sorted — detects early with swap flag' },
-    { case: 'Average', value: 'O(n²)', note: 'Random order — many comparisons needed' },
-    { case: 'Worst', value: 'O(n²)', note: 'Reverse sorted — maximum swaps required' },
+    { case: 'Best', value: 'O(n log n)', note: 'Pivot always splits array evenly' },
+    { case: 'Average', value: 'O(n log n)', note: 'Random pivots usually produce balanced splits' },
+    { case: 'Worst', value: 'O(n²)', note: 'Pivot is always the smallest or largest — sorted/reverse-sorted input' },
   ]
 
   return (
@@ -187,43 +186,46 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'Start with the first number in the list.',
-  'Compare it with the number next to it.',
-  'If the first number is bigger, swap them.',
-  'Move to the next pair.',
-  'Keep doing this until you reach the end.',
-  'Now the largest number is at the end.',
-  'Repeat from the beginning, but stop one step earlier.',
-  'Keep repeating until the list is sorted.',
+  'If the array has one or zero elements, return.',
+  'Pick a pivot (last element is common).',
+  'Partition: move elements smaller than pivot to the left, larger to the right.',
+  'Place the pivot in its final sorted position.',
+  'Recursively sort the left sub-array.',
+  'Recursively sort the right sub-array.',
 ]
 
-const JAVA_CODE = `class BubbleSortExample {
-    public static void main(String[] args) {
-        int[] arr = {222, 40, 66, 99, 12, 5};
+const JAVA_CODE = `class QuickSortExample {
+    public static int partition(int[] arr, int low, int high) {
+        int pivot = arr[high];
+        int i = low - 1;
 
-        // Bubble sort starts here
-        for (int i = 0; i < arr.length - 1; i++) {
-            // Go from the beginning up to the part that's not sorted yet
-            for (int j = 0; j < arr.length - 1 - i; j++) {
-                // Compare current number with the next one
-                if (arr[j] > arr[j + 1]) {
-                    // Swap if the left number is bigger than the right one
-                    int temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                }
+        for (int j = low; j < high; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                int temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
             }
         }
+        // Place pivot in its correct position
+        int temp = arr[i + 1]; arr[i + 1] = arr[high]; arr[high] = temp;
+        return i + 1;
+    }
 
-        // Print the sorted array
+    public static void quickSort(int[] arr, int low, int high) {
+        if (low >= high) return;
+        int pivotIndex = partition(arr, low, high);
+        quickSort(arr, low, pivotIndex - 1);
+        quickSort(arr, pivotIndex + 1, high);
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {38, 27, 43, 12, 52, 19};
+        quickSort(arr, 0, arr.length - 1);
         System.out.println("Sorted array:");
-        for (int num : arr) {
-            System.out.print(num + " ");
-        }
+        for (int num : arr) System.out.print(num + " ");
     }
 }`
 
-export default function BubbleSortPage() {
+export default function QuickSortPage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -242,7 +244,7 @@ export default function BubbleSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Bubble Sort</span>
+          <span style={{ color: '#6FB5FF' }}>Quick Sort</span>
         </div>
 
         {/* Two-column layout */}
@@ -285,7 +287,7 @@ export default function BubbleSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Bubble Sort
+              Quick Sort
             </h1>
 
             {/* Meta row */}
@@ -306,7 +308,7 @@ export default function BubbleSortPage() {
                   color: '#6b7280',
                 }}
               >
-                🕐 8 min read
+                🕐 9 min read
               </span>
               <span
                 style={{
@@ -316,124 +318,71 @@ export default function BubbleSortPage() {
                   color: '#6b7280',
                 }}
               >
-                📘 Beginner
+                📗 Intermediate
               </span>
             </div>
 
             {/* Inbuilt visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" />
+              <MiniSortingVisualizer initialAlgorithm="quick" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Bubble sort is one of the simplest ways to sort a list. It works by looking at two
-              adjacent (next to each other) numbers at a time and swapping them if they&apos;re in
-              the wrong order. We repeat this process until everything is in the correct position.
+              Quick sort picks a &apos;pivot&apos; element and rearranges the array so all smaller
+              elements come before it and all larger elements come after. Then it recursively does the
+              same for each side.
             </CalloutBox>
 
-            <Paragraph>
-              Let&apos;s take a look at how this works with an example. Click the play button to
-              watch the sorting step by step.
-            </Paragraph>
-
             {/* ── Section 1 ── */}
-            <SectionHeading>Bubble Sort Step by Step</SectionHeading>
+            <SectionHeading>How Quick Sort Works</SectionHeading>
 
-            <Paragraph>Every sorting method arranges data in the correct order.</Paragraph>
+            <SubHeading>Choosing a pivot</SubHeading>
 
             <Paragraph>
-              Bubble sort does this by slowly moving the largest number toward the end of the list,
-              one round at a time. This gradual movement is often compared to a bubble rising, which
-              is where the name &quot;bubble sort&quot; comes from.
+              We pick one element as the pivot (often the last element). We then scan the rest of the
+              array and put everything smaller than the pivot on its left and everything larger on its
+              right.
             </Paragraph>
 
             <Paragraph>
-              We begin by sorting the last element first, then the second-last, and so on. This
-              continues until only one element remains, which will already be in the correct spot.
+              <strong>Starting array:</strong> [38, 27, 43, 12, 52, 19] — Pivot = 19 (last element)
             </Paragraph>
 
-            {/* Sub: last element */}
-            <SubHeading>Sorting the last element</SubHeading>
+            <CalloutBox>
+              Scanning: 38 &gt; 19 (right), 27 &gt; 19 (right), 43 &gt; 19 (right), 12 &lt; 19
+              (left) → after partition: [12, 19, 43, 27, 52, 38]
+            </CalloutBox>
+
+            <SubHeading>After partitioning</SubHeading>
 
             <Paragraph>
-              <strong>Starting array:</strong> [222, 40, 66, 99, 12, 5]
-            </Paragraph>
-
-            <Paragraph>
-              We want to make sure the largest number ends up in the last position.
-            </Paragraph>
-
-            <Paragraph>
-              First, compare 222 and 40. Since 222 is greater, we swap them.
-            </Paragraph>
-
-            <CalloutBox>Updated array: [40, 222, 66, 99, 12, 5]</CalloutBox>
-
-            <Paragraph>
-              Next, compare the second and third elements: 222 and 66. Again, 222 is greater, so we
-              swap them.
-            </Paragraph>
-
-            <CalloutBox>Updated array: [40, 66, 222, 99, 12, 5]</CalloutBox>
-
-            <Paragraph>
-              We continue comparing each pair of adjacent elements and swapping when needed until we
-              reach the end of the list.
+              19 is now in its final position. Everything to its left is smaller, everything to its
+              right is larger. Now repeat the process on each side.
             </Paragraph>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={1} />
+              <MiniSortingVisualizer initialAlgorithm="quick" maxSortedCount={2} />
             </div>
 
-            {/* Sub: second-last */}
-            <SubHeading>Sorting the second-last element</SubHeading>
+            <SubHeading>Recursing on each side</SubHeading>
 
             <Paragraph>
-              Now that the largest element is in place, we don&apos;t need to touch it again.
-            </Paragraph>
-
-            <Paragraph>
-              Next, we&apos;ll move the second-largest number into the second-last position using the
-              same steps. We compare and swap adjacent pairs, but only up to the second-last index.
+              Apply the same pivot-and-partition logic to [12] (already sorted) and [43, 27, 52,
+              38]. Each recursive call places one more element in its final position.
             </Paragraph>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={2} />
-            </div>
-
-            {/* Sub: third-last */}
-            <SubHeading>Sorting the third-last element</SubHeading>
-
-            <Paragraph>
-              We repeat the same process again, this time stopping one step earlier — up to the
-              third-last index.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={3} />
-            </div>
-
-            {/* Sub: the rest */}
-            <SubHeading>Sorting the Rest of the Elements</SubHeading>
-
-            <Paragraph>
-              We continue this pattern until the second element is in the correct position. At that
-              point, the first element is also automatically in place because everything else around
-              it is already sorted.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" startFromSortedCount={3} />
+              <MiniSortingVisualizer initialAlgorithm="quick" startFromSortedCount={2} />
             </div>
 
             <CalloutBox>
-              This is bubble sort. One pair at a time. One round at a time. Each round pushes the
-              next biggest number to where it belongs.
+              Quick sort is fast in practice because it sorts in-place without needing extra arrays
+              — unlike merge sort.
             </CalloutBox>
 
             {/* ── Section 2 ── */}
-            <SectionHeading>Bubble Sort Algorithm (Step by Step)</SectionHeading>
+            <SectionHeading>Quick Sort Algorithm (Step by Step)</SectionHeading>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -454,41 +403,21 @@ export default function BubbleSortPage() {
             </ol>
 
             {/* ── Section 3 ── */}
-            <SectionHeading>Bubble Sort Code</SectionHeading>
+            <SectionHeading>Quick Sort Code</SectionHeading>
 
             <CodeBlock code={JAVA_CODE} />
 
             {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Bubble Sort</SectionHeading>
-
-            <SubHeading>Time Complexity</SubHeading>
-
-            <Paragraph>
-              <strong>Worst Case:</strong> When the list is in reverse order, Bubble Sort has to go
-              through the entire list and swap almost everything. The number of operations is roughly
-              n + (n−1) + (n−2) + … + 1, which gives us <strong>O(n²)</strong>.
-            </Paragraph>
-
-            <Paragraph>
-              <strong>Best Case:</strong> When the list is already sorted, a version of Bubble Sort
-              with a <em>swapped</em> flag can detect this and stop after one pass —{' '}
-              <strong>O(n)</strong>.
-            </Paragraph>
-
-            <Paragraph>
-              <strong>Average Case:</strong> For randomly ordered lists, Bubble Sort still does many
-              comparisons and swaps, so on average it is also <strong>O(n²)</strong>.
-            </Paragraph>
+            <SectionHeading>Complexity of Quick Sort</SectionHeading>
 
             <ComplexityTable />
 
             <SubHeading>Space Complexity</SubHeading>
 
             <Paragraph>
-              <strong>O(1) — Constant space.</strong> Bubble Sort sorts the list in-place. It
-              doesn&apos;t use any extra arrays or data structures — only a few loop variables and a
-              temporary swap variable. No matter how large the input, the extra memory used stays the
-              same.
+              <strong>O(log n) average — the recursion stack depth.</strong> No extra array is
+              needed, but the call stack grows with each recursive level. In the worst case (already
+              sorted input with a bad pivot), the stack can reach O(n).
             </Paragraph>
 
             {/* Closing card */}
@@ -510,7 +439,7 @@ export default function BubbleSortPage() {
                   marginBottom: 10,
                 }}
               >
-                You&apos;ve got the basics!
+                Excellent!
               </div>
               <p
                 style={{
@@ -522,15 +451,15 @@ export default function BubbleSortPage() {
                   marginBottom: 16,
                 }}
               >
-                Bubble Sort is easy to understand and a great starting point for learning sorting
-                algorithms. It may not be the fastest, but it&apos;s one of the clearest examples of
-                how sorting works under the hood. Once you&apos;re comfortable with this, you&apos;ll
-                be ready to explore faster sorts like Insertion Sort, Merge Sort, and Quick Sort.
+                You&apos;ve now mastered the three most important comparison-based sorting algorithms.
+                Bubble Sort, Insertion Sort, Merge Sort, and Quick Sort form the foundation of how
+                computers organize data efficiently. Experiment in the visualizer to see them in
+                action on different arrays.
               </p>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
-                  href="/learn-dsa/insertion-sort"
+                  href="/learn-dsa"
                   style={{
                     background: '#6FB5FF',
                     color: '#fff',
@@ -542,7 +471,7 @@ export default function BubbleSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Next: Insertion Sort →
+                  Back to Sorting →
                 </Link>
                 <Link
                   href="/visualizer/sorting"

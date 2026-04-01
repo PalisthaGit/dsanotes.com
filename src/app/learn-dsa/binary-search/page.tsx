@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LearnSidebar } from '../sidebar'
-import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
+import MiniSearchVisualizer from '@/components/visualizers/searching/MiniSearchVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Bubble Sort Explained | Learn DSA',
+  title: 'Binary Search Explained | Learn DSA',
   description:
-    'Learn how Bubble Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how Binary Search works step by step with examples, code, and complexity analysis.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -81,7 +81,6 @@ function Paragraph({ children }: { children: React.ReactNode }) {
   )
 }
 
-
 function CodeBlock({ code }: { code: string }) {
   return (
     <div
@@ -111,9 +110,9 @@ function CodeBlock({ code }: { code: string }) {
 
 function ComplexityTable() {
   const rows = [
-    { case: 'Best', value: 'O(n)', note: 'Already sorted — detects early with swap flag' },
-    { case: 'Average', value: 'O(n²)', note: 'Random order — many comparisons needed' },
-    { case: 'Worst', value: 'O(n²)', note: 'Reverse sorted — maximum swaps required' },
+    { case: 'Best', value: 'O(1)', note: 'Target is exactly at the midpoint on first check' },
+    { case: 'Average', value: 'O(log n)', note: 'Halves the search space each step' },
+    { case: 'Worst', value: 'O(log n)', note: 'Target is at the end of repeated halving — still logarithmic' },
   ]
 
   return (
@@ -187,43 +186,43 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'Start with the first number in the list.',
-  'Compare it with the number next to it.',
-  'If the first number is bigger, swap them.',
-  'Move to the next pair.',
-  'Keep doing this until you reach the end.',
-  'Now the largest number is at the end.',
-  'Repeat from the beginning, but stop one step earlier.',
-  'Keep repeating until the list is sorted.',
+  'Ensure the array is sorted.',
+  'Set low = 0, high = last index.',
+  'Calculate mid = (low + high) / 2.',
+  'If arr[mid] == target, return mid.',
+  'If arr[mid] < target, set low = mid + 1 (search right half).',
+  'If arr[mid] > target, set high = mid - 1 (search left half).',
+  'Repeat until low > high (not found) or target found.',
 ]
 
-const JAVA_CODE = `class BubbleSortExample {
-    public static void main(String[] args) {
-        int[] arr = {222, 40, 66, 99, 12, 5};
+const JAVA_CODE = `class BinarySearchExample {
+    public static int binarySearch(int[] arr, int target) {
+        int low = 0, high = arr.length - 1;
 
-        // Bubble sort starts here
-        for (int i = 0; i < arr.length - 1; i++) {
-            // Go from the beginning up to the part that's not sorted yet
-            for (int j = 0; j < arr.length - 1 - i; j++) {
-                // Compare current number with the next one
-                if (arr[j] > arr[j + 1]) {
-                    // Swap if the left number is bigger than the right one
-                    int temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                }
-            }
+        while (low <= high) {
+            int mid = (low + high) / 2;
+
+            if (arr[mid] == target)  return mid;        // Found
+            else if (arr[mid] < target) low  = mid + 1; // Search right
+            else                        high = mid - 1; // Search left
         }
+        return -1; // Not found
+    }
 
-        // Print the sorted array
-        System.out.println("Sorted array:");
-        for (int num : arr) {
-            System.out.print(num + " ");
+    public static void main(String[] args) {
+        int[] arr = {3, 7, 12, 18, 25, 31, 38, 45};
+        int target = 25;
+        int result = binarySearch(arr, target);
+
+        if (result != -1) {
+            System.out.println("Found " + target + " at index " + result);
+        } else {
+            System.out.println(target + " is not in the array");
         }
     }
 }`
 
-export default function BubbleSortPage() {
+export default function BinarySearchPage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -242,7 +241,7 @@ export default function BubbleSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Bubble Sort</span>
+          <span style={{ color: '#6FB5FF' }}>Binary Search</span>
         </div>
 
         {/* Two-column layout */}
@@ -260,8 +259,8 @@ export default function BubbleSortPage() {
             <span
               style={{
                 display: 'inline-block',
-                background: '#dbeeff',
-                color: '#1a6bb5',
+                background: '#dcfce7',
+                color: '#166534',
                 fontFamily: 'var(--font-nunito)',
                 fontWeight: 700,
                 fontSize: 11,
@@ -271,7 +270,7 @@ export default function BubbleSortPage() {
                 letterSpacing: '0.05em',
               }}
             >
-              SORTING ALGORITHMS
+              SEARCHING ALGORITHMS
             </span>
 
             {/* Title */}
@@ -285,7 +284,7 @@ export default function BubbleSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Bubble Sort
+              Binary Search
             </h1>
 
             {/* Meta row */}
@@ -306,7 +305,7 @@ export default function BubbleSortPage() {
                   color: '#6b7280',
                 }}
               >
-                🕐 8 min read
+                🕐 7 min read
               </span>
               <span
                 style={{
@@ -316,124 +315,69 @@ export default function BubbleSortPage() {
                   color: '#6b7280',
                 }}
               >
-                📘 Beginner
+                📗 Intermediate
               </span>
             </div>
 
             {/* Inbuilt visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" />
+              <MiniSearchVisualizer initialAlgorithm="binary" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Bubble sort is one of the simplest ways to sort a list. It works by looking at two
-              adjacent (next to each other) numbers at a time and swapping them if they&apos;re in
-              the wrong order. We repeat this process until everything is in the correct position.
+              Binary search is dramatically faster than linear search — but it only works on a sorted
+              array. Each step cuts the search space in half, making it O(log n).
             </CalloutBox>
 
-            <Paragraph>
-              Let&apos;s take a look at how this works with an example. Click the play button to
-              watch the sorting step by step.
-            </Paragraph>
-
             {/* ── Section 1 ── */}
-            <SectionHeading>Bubble Sort Step by Step</SectionHeading>
-
-            <Paragraph>Every sorting method arranges data in the correct order.</Paragraph>
+            <SectionHeading>How Binary Search Works</SectionHeading>
 
             <Paragraph>
-              Bubble sort does this by slowly moving the largest number toward the end of the list,
-              one round at a time. This gradual movement is often compared to a bubble rising, which
-              is where the name &quot;bubble sort&quot; comes from.
+              Think of looking up a word in a dictionary. You don&apos;t start at page 1 — you open
+              to the middle, check if the word is before or after, then repeat on the correct half.
             </Paragraph>
 
+            <SubHeading>Searching for 25 in [3, 7, 12, 18, 25, 31, 38, 45]</SubHeading>
+
             <Paragraph>
-              We begin by sorting the last element first, then the second-last, and so on. This
-              continues until only one element remains, which will already be in the correct spot.
+              Set low=0, high=7. Mid = (0+7)/2 = 3. arr[3] = 18. Since 25 &gt; 18, the target must
+              be in the right half. Set low = mid+1 = 4.
             </Paragraph>
 
-            {/* Sub: last element */}
-            <SubHeading>Sorting the last element</SubHeading>
+            <CalloutBox>
+              Round 1: mid=3, value=18. 25 &gt; 18 → search right half [25, 31, 38, 45]
+            </CalloutBox>
+
+            <SubHeading>Narrowing down</SubHeading>
 
             <Paragraph>
-              <strong>Starting array:</strong> [222, 40, 66, 99, 12, 5]
+              Now low=4, high=7. Mid = (4+7)/2 = 5. arr[5] = 31. Since 25 &lt; 31, search left. Set
+              high = mid-1 = 4.
             </Paragraph>
 
-            <Paragraph>
-              We want to make sure the largest number ends up in the last position.
-            </Paragraph>
+            <CalloutBox>
+              Round 2: mid=5, value=31. 25 &lt; 31 → search left half [25]
+            </CalloutBox>
+
+            <SubHeading>Found!</SubHeading>
 
             <Paragraph>
-              First, compare 222 and 40. Since 222 is greater, we swap them.
-            </Paragraph>
-
-            <CalloutBox>Updated array: [40, 222, 66, 99, 12, 5]</CalloutBox>
-
-            <Paragraph>
-              Next, compare the second and third elements: 222 and 66. Again, 222 is greater, so we
-              swap them.
-            </Paragraph>
-
-            <CalloutBox>Updated array: [40, 66, 222, 99, 12, 5]</CalloutBox>
-
-            <Paragraph>
-              We continue comparing each pair of adjacent elements and swapping when needed until we
-              reach the end of the list.
+              low=4, high=4, mid=4. arr[4]=25. Match! Found in just 3 steps instead of 5 (linear
+              search would take 5).
             </Paragraph>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={1} />
-            </div>
-
-            {/* Sub: second-last */}
-            <SubHeading>Sorting the second-last element</SubHeading>
-
-            <Paragraph>
-              Now that the largest element is in place, we don&apos;t need to touch it again.
-            </Paragraph>
-
-            <Paragraph>
-              Next, we&apos;ll move the second-largest number into the second-last position using the
-              same steps. We compare and swap adjacent pairs, but only up to the second-last index.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={2} />
-            </div>
-
-            {/* Sub: third-last */}
-            <SubHeading>Sorting the third-last element</SubHeading>
-
-            <Paragraph>
-              We repeat the same process again, this time stopping one step earlier — up to the
-              third-last index.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={3} />
-            </div>
-
-            {/* Sub: the rest */}
-            <SubHeading>Sorting the Rest of the Elements</SubHeading>
-
-            <Paragraph>
-              We continue this pattern until the second element is in the correct position. At that
-              point, the first element is also automatically in place because everything else around
-              it is already sorted.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" startFromSortedCount={3} />
+              <MiniSearchVisualizer initialAlgorithm="binary" />
             </div>
 
             <CalloutBox>
-              This is bubble sort. One pair at a time. One round at a time. Each round pushes the
-              next biggest number to where it belongs.
+              Binary search cuts the problem in half every round. An array of 1,000,000 elements
+              takes at most 20 comparisons. That&apos;s the power of O(log n).
             </CalloutBox>
 
             {/* ── Section 2 ── */}
-            <SectionHeading>Bubble Sort Algorithm (Step by Step)</SectionHeading>
+            <SectionHeading>Binary Search Algorithm (Step by Step)</SectionHeading>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -454,41 +398,20 @@ export default function BubbleSortPage() {
             </ol>
 
             {/* ── Section 3 ── */}
-            <SectionHeading>Bubble Sort Code</SectionHeading>
+            <SectionHeading>Binary Search Code</SectionHeading>
 
             <CodeBlock code={JAVA_CODE} />
 
             {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Bubble Sort</SectionHeading>
-
-            <SubHeading>Time Complexity</SubHeading>
-
-            <Paragraph>
-              <strong>Worst Case:</strong> When the list is in reverse order, Bubble Sort has to go
-              through the entire list and swap almost everything. The number of operations is roughly
-              n + (n−1) + (n−2) + … + 1, which gives us <strong>O(n²)</strong>.
-            </Paragraph>
-
-            <Paragraph>
-              <strong>Best Case:</strong> When the list is already sorted, a version of Bubble Sort
-              with a <em>swapped</em> flag can detect this and stop after one pass —{' '}
-              <strong>O(n)</strong>.
-            </Paragraph>
-
-            <Paragraph>
-              <strong>Average Case:</strong> For randomly ordered lists, Bubble Sort still does many
-              comparisons and swaps, so on average it is also <strong>O(n²)</strong>.
-            </Paragraph>
+            <SectionHeading>Complexity of Binary Search</SectionHeading>
 
             <ComplexityTable />
 
             <SubHeading>Space Complexity</SubHeading>
 
             <Paragraph>
-              <strong>O(1) — Constant space.</strong> Bubble Sort sorts the list in-place. It
-              doesn&apos;t use any extra arrays or data structures — only a few loop variables and a
-              temporary swap variable. No matter how large the input, the extra memory used stays the
-              same.
+              <strong>O(1) — iterative binary search uses only a few variables</strong> (low, high,
+              mid). No extra memory proportional to the array size is needed.
             </Paragraph>
 
             {/* Closing card */}
@@ -510,7 +433,7 @@ export default function BubbleSortPage() {
                   marginBottom: 10,
                 }}
               >
-                You&apos;ve got the basics!
+                You&apos;ve mastered searching!
               </div>
               <p
                 style={{
@@ -522,15 +445,15 @@ export default function BubbleSortPage() {
                   marginBottom: 16,
                 }}
               >
-                Bubble Sort is easy to understand and a great starting point for learning sorting
-                algorithms. It may not be the fastest, but it&apos;s one of the clearest examples of
-                how sorting works under the hood. Once you&apos;re comfortable with this, you&apos;ll
-                be ready to explore faster sorts like Insertion Sort, Merge Sort, and Quick Sort.
+                Linear search and binary search are the two foundational searching algorithms. Together
+                they cover the full spectrum — from simple unsorted lookups to blazing-fast searches on
+                sorted data. These are the building blocks for more advanced search structures like
+                binary search trees and hash maps.
               </p>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
-                  href="/learn-dsa/insertion-sort"
+                  href="/learn-dsa"
                   style={{
                     background: '#6FB5FF',
                     color: '#fff',
@@ -542,10 +465,10 @@ export default function BubbleSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Next: Insertion Sort →
+                  Back to All Topics →
                 </Link>
                 <Link
-                  href="/visualizer/sorting"
+                  href="/visualizer/searching"
                   style={{
                     background: '#dbeeff',
                     color: '#1a6bb5',

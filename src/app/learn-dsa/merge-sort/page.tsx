@@ -4,9 +4,9 @@ import { LearnSidebar } from '../sidebar'
 import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Bubble Sort Explained | Learn DSA',
+  title: 'Merge Sort Explained | Learn DSA',
   description:
-    'Learn how Bubble Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how Merge Sort works step by step with examples, code, and complexity analysis.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -81,7 +81,6 @@ function Paragraph({ children }: { children: React.ReactNode }) {
   )
 }
 
-
 function CodeBlock({ code }: { code: string }) {
   return (
     <div
@@ -111,9 +110,9 @@ function CodeBlock({ code }: { code: string }) {
 
 function ComplexityTable() {
   const rows = [
-    { case: 'Best', value: 'O(n)', note: 'Already sorted — detects early with swap flag' },
-    { case: 'Average', value: 'O(n²)', note: 'Random order — many comparisons needed' },
-    { case: 'Worst', value: 'O(n²)', note: 'Reverse sorted — maximum swaps required' },
+    { case: 'Best', value: 'O(n log n)', note: 'Always divides evenly — same cost every time' },
+    { case: 'Average', value: 'O(n log n)', note: 'Consistent divide-and-conquer regardless of order' },
+    { case: 'Worst', value: 'O(n log n)', note: 'No worst case — merge sort is always O(n log n)' },
   ]
 
   return (
@@ -187,43 +186,46 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'Start with the first number in the list.',
-  'Compare it with the number next to it.',
-  'If the first number is bigger, swap them.',
-  'Move to the next pair.',
-  'Keep doing this until you reach the end.',
-  'Now the largest number is at the end.',
-  'Repeat from the beginning, but stop one step earlier.',
-  'Keep repeating until the list is sorted.',
+  'If the array has one element, it\'s already sorted — return it.',
+  'Split the array in half.',
+  'Recursively sort the left half.',
+  'Recursively sort the right half.',
+  'Merge the two sorted halves by comparing elements one by one.',
+  'Always take the smaller element first when merging.',
 ]
 
-const JAVA_CODE = `class BubbleSortExample {
+const JAVA_CODE = `import java.util.Arrays;
+
+class MergeSortExample {
+    public static void merge(int[] arr, int left, int mid, int right) {
+        int[] leftArr  = Arrays.copyOfRange(arr, left, mid + 1);
+        int[] rightArr = Arrays.copyOfRange(arr, mid + 1, right + 1);
+
+        int i = 0, j = 0, k = left;
+        while (i < leftArr.length && j < rightArr.length) {
+            if (leftArr[i] <= rightArr[j]) arr[k++] = leftArr[i++];
+            else                           arr[k++] = rightArr[j++];
+        }
+        while (i < leftArr.length)  arr[k++] = leftArr[i++];
+        while (j < rightArr.length) arr[k++] = rightArr[j++];
+    }
+
+    public static void mergeSort(int[] arr, int left, int right) {
+        if (left >= right) return;
+        int mid = (left + right) / 2;
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+
     public static void main(String[] args) {
-        int[] arr = {222, 40, 66, 99, 12, 5};
-
-        // Bubble sort starts here
-        for (int i = 0; i < arr.length - 1; i++) {
-            // Go from the beginning up to the part that's not sorted yet
-            for (int j = 0; j < arr.length - 1 - i; j++) {
-                // Compare current number with the next one
-                if (arr[j] > arr[j + 1]) {
-                    // Swap if the left number is bigger than the right one
-                    int temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                }
-            }
-        }
-
-        // Print the sorted array
-        System.out.println("Sorted array:");
-        for (int num : arr) {
-            System.out.print(num + " ");
-        }
+        int[] arr = {38, 27, 43, 12, 52, 19};
+        mergeSort(arr, 0, arr.length - 1);
+        System.out.println("Sorted: " + Arrays.toString(arr));
     }
 }`
 
-export default function BubbleSortPage() {
+export default function MergeSortPage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -242,7 +244,7 @@ export default function BubbleSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Bubble Sort</span>
+          <span style={{ color: '#6FB5FF' }}>Merge Sort</span>
         </div>
 
         {/* Two-column layout */}
@@ -285,7 +287,7 @@ export default function BubbleSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Bubble Sort
+              Merge Sort
             </h1>
 
             {/* Meta row */}
@@ -316,124 +318,73 @@ export default function BubbleSortPage() {
                   color: '#6b7280',
                 }}
               >
-                📘 Beginner
+                📗 Intermediate
               </span>
             </div>
 
             {/* Inbuilt visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" />
+              <MiniSortingVisualizer initialAlgorithm="merge" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Bubble sort is one of the simplest ways to sort a list. It works by looking at two
-              adjacent (next to each other) numbers at a time and swapping them if they&apos;re in
-              the wrong order. We repeat this process until everything is in the correct position.
+              Merge sort uses a divide-and-conquer strategy. It splits the array in half repeatedly
+              until each piece has one element, then merges the pieces back together in sorted order.
             </CalloutBox>
 
-            <Paragraph>
-              Let&apos;s take a look at how this works with an example. Click the play button to
-              watch the sorting step by step.
-            </Paragraph>
-
             {/* ── Section 1 ── */}
-            <SectionHeading>Bubble Sort Step by Step</SectionHeading>
-
-            <Paragraph>Every sorting method arranges data in the correct order.</Paragraph>
+            <SectionHeading>How Merge Sort Works</SectionHeading>
 
             <Paragraph>
-              Bubble sort does this by slowly moving the largest number toward the end of the list,
-              one round at a time. This gradual movement is often compared to a bubble rising, which
-              is where the name &quot;bubble sort&quot; comes from.
+              Merge sort tackles the problem by splitting [38, 27, 43, 12, 52, 19] into halves,
+              sorting each half independently, then merging the sorted halves back together.
             </Paragraph>
+
+            <SubHeading>Step 1 — Divide</SubHeading>
 
             <Paragraph>
-              We begin by sorting the last element first, then the second-last, and so on. This
-              continues until only one element remains, which will already be in the correct spot.
+              Split [38, 27, 43, 12, 52, 19] into [38, 27, 43] and [12, 52, 19]. Keep splitting
+              until each sub-array has one element.
             </Paragraph>
 
-            {/* Sub: last element */}
-            <SubHeading>Sorting the last element</SubHeading>
+            <CalloutBox>
+              [38] [27] [43] | [12] [52] [19] — each piece is a sorted list of one
+            </CalloutBox>
+
+            <SubHeading>Step 2 — Conquer (Merge)</SubHeading>
 
             <Paragraph>
-              <strong>Starting array:</strong> [222, 40, 66, 99, 12, 5]
+              Merge pairs back together in sorted order. Compare the fronts of two lists, always
+              taking the smaller.
             </Paragraph>
 
-            <Paragraph>
-              We want to make sure the largest number ends up in the last position.
-            </Paragraph>
-
-            <Paragraph>
-              First, compare 222 and 40. Since 222 is greater, we swap them.
-            </Paragraph>
-
-            <CalloutBox>Updated array: [40, 222, 66, 99, 12, 5]</CalloutBox>
-
-            <Paragraph>
-              Next, compare the second and third elements: 222 and 66. Again, 222 is greater, so we
-              swap them.
-            </Paragraph>
-
-            <CalloutBox>Updated array: [40, 66, 222, 99, 12, 5]</CalloutBox>
-
-            <Paragraph>
-              We continue comparing each pair of adjacent elements and swapping when needed until we
-              reach the end of the list.
-            </Paragraph>
+            <CalloutBox>
+              Merge [27] and [38] → [27, 38]. Merge [43] → [43]. Merge [12] and [19] → [12, 19].
+              Merge with [52] → [12, 19, 52]
+            </CalloutBox>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={1} />
+              <MiniSortingVisualizer initialAlgorithm="merge" maxSortedCount={3} />
             </div>
 
-            {/* Sub: second-last */}
-            <SubHeading>Sorting the second-last element</SubHeading>
+            <SubHeading>Step 3 — Final merge</SubHeading>
 
             <Paragraph>
-              Now that the largest element is in place, we don&apos;t need to touch it again.
-            </Paragraph>
-
-            <Paragraph>
-              Next, we&apos;ll move the second-largest number into the second-last position using the
-              same steps. We compare and swap adjacent pairs, but only up to the second-last index.
+              Merge [27, 38, 43] and [12, 19, 52] by comparing element-by-element.
             </Paragraph>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={2} />
-            </div>
-
-            {/* Sub: third-last */}
-            <SubHeading>Sorting the third-last element</SubHeading>
-
-            <Paragraph>
-              We repeat the same process again, this time stopping one step earlier — up to the
-              third-last index.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={3} />
-            </div>
-
-            {/* Sub: the rest */}
-            <SubHeading>Sorting the Rest of the Elements</SubHeading>
-
-            <Paragraph>
-              We continue this pattern until the second element is in the correct position. At that
-              point, the first element is also automatically in place because everything else around
-              it is already sorted.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" startFromSortedCount={3} />
+              <MiniSortingVisualizer initialAlgorithm="merge" startFromSortedCount={3} />
             </div>
 
             <CalloutBox>
-              This is bubble sort. One pair at a time. One round at a time. Each round pushes the
-              next biggest number to where it belongs.
+              Merge sort always splits and merges the same way — there&apos;s no best or worst
+              arrangement. Every array takes O(n log n) steps.
             </CalloutBox>
 
             {/* ── Section 2 ── */}
-            <SectionHeading>Bubble Sort Algorithm (Step by Step)</SectionHeading>
+            <SectionHeading>Merge Sort Algorithm (Step by Step)</SectionHeading>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -454,41 +405,21 @@ export default function BubbleSortPage() {
             </ol>
 
             {/* ── Section 3 ── */}
-            <SectionHeading>Bubble Sort Code</SectionHeading>
+            <SectionHeading>Merge Sort Code</SectionHeading>
 
             <CodeBlock code={JAVA_CODE} />
 
             {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Bubble Sort</SectionHeading>
-
-            <SubHeading>Time Complexity</SubHeading>
-
-            <Paragraph>
-              <strong>Worst Case:</strong> When the list is in reverse order, Bubble Sort has to go
-              through the entire list and swap almost everything. The number of operations is roughly
-              n + (n−1) + (n−2) + … + 1, which gives us <strong>O(n²)</strong>.
-            </Paragraph>
-
-            <Paragraph>
-              <strong>Best Case:</strong> When the list is already sorted, a version of Bubble Sort
-              with a <em>swapped</em> flag can detect this and stop after one pass —{' '}
-              <strong>O(n)</strong>.
-            </Paragraph>
-
-            <Paragraph>
-              <strong>Average Case:</strong> For randomly ordered lists, Bubble Sort still does many
-              comparisons and swaps, so on average it is also <strong>O(n²)</strong>.
-            </Paragraph>
+            <SectionHeading>Complexity of Merge Sort</SectionHeading>
 
             <ComplexityTable />
 
             <SubHeading>Space Complexity</SubHeading>
 
             <Paragraph>
-              <strong>O(1) — Constant space.</strong> Bubble Sort sorts the list in-place. It
-              doesn&apos;t use any extra arrays or data structures — only a few loop variables and a
-              temporary swap variable. No matter how large the input, the extra memory used stays the
-              same.
+              <strong>O(n) — requires extra arrays during merging.</strong> The merge step copies
+              elements into temporary arrays before writing back. Unlike in-place sorts, merge sort
+              needs additional memory proportional to the input size.
             </Paragraph>
 
             {/* Closing card */}
@@ -510,7 +441,7 @@ export default function BubbleSortPage() {
                   marginBottom: 10,
                 }}
               >
-                You&apos;ve got the basics!
+                Great work!
               </div>
               <p
                 style={{
@@ -522,15 +453,14 @@ export default function BubbleSortPage() {
                   marginBottom: 16,
                 }}
               >
-                Bubble Sort is easy to understand and a great starting point for learning sorting
-                algorithms. It may not be the fastest, but it&apos;s one of the clearest examples of
-                how sorting works under the hood. Once you&apos;re comfortable with this, you&apos;ll
-                be ready to explore faster sorts like Insertion Sort, Merge Sort, and Quick Sort.
+                Merge sort is reliable, predictable, and a classic example of divide-and-conquer
+                thinking. Up next is Quick Sort — another divide-and-conquer algorithm that sorts
+                in-place and is often faster in practice.
               </p>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
-                  href="/learn-dsa/insertion-sort"
+                  href="/learn-dsa/quick-sort"
                   style={{
                     background: '#6FB5FF',
                     color: '#fff',
@@ -542,7 +472,7 @@ export default function BubbleSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Next: Insertion Sort →
+                  Next: Quick Sort →
                 </Link>
                 <Link
                   href="/visualizer/sorting"
