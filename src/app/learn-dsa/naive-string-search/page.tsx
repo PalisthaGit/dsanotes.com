@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LearnSidebar } from '../sidebar'
-import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
+import MiniStringVisualizer from '@/components/visualizers/string-matching/MiniStringVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Quick Sort Explained | Learn DSA',
+  title: 'Naive String Search Explained | Learn DSA',
   description:
-    'Learn how Quick Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how Naive (Brute Force) String Search works step by step with examples, Java code, and complexity analysis.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -108,18 +108,12 @@ function CodeBlock({ code }: { code: string }) {
   )
 }
 
-function ComplexityTable() {
-  const rows = [
-    { case: 'Best', value: 'O(n log n)', note: 'Pivot always splits array evenly' },
-    { case: 'Average', value: 'O(n log n)', note: 'Random pivots usually produce balanced splits' },
-    { case: 'Worst', value: 'O(n²)', note: 'Pivot is always the smallest or largest — sorted/reverse-sorted input' },
-  ]
-
+function ComplexityTable({ rows }: { rows: { case: string; value: string; note: string }[] }) {
   return (
     <div style={{ overflowX: 'auto', marginBottom: 24 }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ background: '#f0f7ff' }}>
+          <tr style={{ background: '#f0fff4' }}>
             {['Case', 'Time Complexity', 'Notes'].map((h) => (
               <th
                 key={h}
@@ -127,10 +121,10 @@ function ComplexityTable() {
                   fontFamily: 'var(--font-poppins)',
                   fontWeight: 700,
                   fontSize: 12,
-                  color: '#1a6bb5',
+                  color: '#115e59',
                   textAlign: 'left',
                   padding: '10px 16px',
-                  borderBottom: '1.5px solid #d4e6ff',
+                  borderBottom: '1.5px solid #99f6e4',
                 }}
               >
                 {h}
@@ -140,7 +134,7 @@ function ComplexityTable() {
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={row.case} style={{ background: i % 2 === 0 ? '#ffffff' : '#f8fbff' }}>
+            <tr key={row.case} style={{ background: i % 2 === 0 ? '#ffffff' : '#f0fdf4' }}>
               <td
                 style={{
                   fontFamily: 'var(--font-poppins)',
@@ -158,7 +152,7 @@ function ComplexityTable() {
                   fontFamily: 'var(--font-jetbrains)',
                   fontWeight: 600,
                   fontSize: 13,
-                  color: '#6FB5FF',
+                  color: '#0d9488',
                   padding: '10px 16px',
                   border: '0.5px solid #e5e7eb',
                 }}
@@ -186,46 +180,48 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'If the array has one or zero elements, return.',
-  'Pick a pivot (last element is common).',
-  'Partition: move elements smaller than pivot to the left, larger to the right.',
-  'Place the pivot in its final sorted position.',
-  'Recursively sort the left sub-array.',
-  'Recursively sort the right sub-array.',
+  'Align the pattern at position i = 0 in the text.',
+  'Compare pattern characters one by one with text[i], text[i+1], …',
+  'If all match, record i as a match position.',
+  'If any mismatch, slide the pattern one step right (i++).',
+  'Repeat until the pattern no longer fits in the remaining text.',
 ]
 
-const JAVA_CODE = `class QuickSortExample {
-    public static int partition(int[] arr, int low, int high) {
-        int pivot = arr[high];
-        int i = low - 1;
+const JAVA_CODE = `class NaiveStringSearch {
 
-        for (int j = low; j < high; j++) {
-            if (arr[j] <= pivot) {
-                i++;
-                int temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
+    /**
+     * Returns all starting indices where pattern occurs in text.
+     */
+    public static void naiveSearch(String text, String pattern) {
+        int n = text.length();
+        int m = pattern.length();
+
+        for (int i = 0; i <= n - m; i++) {
+            int j = 0;
+
+            // Compare pattern with the current window in text
+            while (j < m && text.charAt(i + j) == pattern.charAt(j)) {
+                j++;
+            }
+
+            if (j == m) {
+                // All m characters matched
+                System.out.println("Pattern found at index " + i);
             }
         }
-        // Place pivot in its correct position
-        int temp = arr[i + 1]; arr[i + 1] = arr[high]; arr[high] = temp;
-        return i + 1;
-    }
-
-    public static void quickSort(int[] arr, int low, int high) {
-        if (low >= high) return;
-        int pivotIndex = partition(arr, low, high);
-        quickSort(arr, low, pivotIndex - 1);
-        quickSort(arr, pivotIndex + 1, high);
     }
 
     public static void main(String[] args) {
-        int[] arr = {38, 27, 43, 12, 52, 19};
-        quickSort(arr, 0, arr.length - 1);
-        System.out.println("Sorted array:");
-        for (int num : arr) System.out.print(num + " ");
+        String text    = "AABACAAB";
+        String pattern = "AAB";
+        naiveSearch(text, pattern);
+        // Output:
+        // Pattern found at index 0
+        // Pattern found at index 5
     }
 }`
 
-export default function QuickSortPage() {
+export default function NaiveStringSearchPage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -244,7 +240,7 @@ export default function QuickSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Quick Sort</span>
+          <span style={{ color: '#0d9488' }}>Naive String Search</span>
         </div>
 
         {/* Two-column layout */}
@@ -262,8 +258,8 @@ export default function QuickSortPage() {
             <span
               style={{
                 display: 'inline-block',
-                background: '#dbeeff',
-                color: '#1a6bb5',
+                background: '#ccfbf1',
+                color: '#115e59',
                 fontFamily: 'var(--font-nunito)',
                 fontWeight: 700,
                 fontSize: 11,
@@ -273,7 +269,7 @@ export default function QuickSortPage() {
                 letterSpacing: '0.05em',
               }}
             >
-              SORTING ALGORITHMS
+              STRING MATCHING
             </span>
 
             {/* Title */}
@@ -287,7 +283,7 @@ export default function QuickSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Quick Sort
+              Naive String Search
             </h1>
 
             {/* Meta row */}
@@ -308,7 +304,7 @@ export default function QuickSortPage() {
                   color: '#6b7280',
                 }}
               >
-                🕐 9 min read
+                🕐 8 min read
               </span>
               <span
                 style={{
@@ -318,60 +314,93 @@ export default function QuickSortPage() {
                   color: '#6b7280',
                 }}
               >
-                📗 Intermediate
+                📘 Beginner
               </span>
             </div>
 
-            {/* Inbuilt visualizer */}
+            {/* Mini visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" />
+              <MiniStringVisualizer algorithm="naive" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Quick sort picks a &apos;pivot&apos; element and rearranges the array so all smaller
-              elements come before it and all larger elements come after. Then it recursively does the
-              same for each side.
+              Naive string search (also called Brute Force) checks if a pattern exists in a text by
+              sliding the pattern one position at a time and comparing character by character. It
+              requires no preprocessing and is the simplest approach to the string matching problem.
             </CalloutBox>
 
-            {/* ── Section 1 ── */}
-            <SectionHeading>How Quick Sort Works</SectionHeading>
-
-            <SubHeading>Choosing a pivot</SubHeading>
+            {/* ── Section 1: How It Works ── */}
+            <SectionHeading>How Naive Search Works</SectionHeading>
 
             <Paragraph>
-              We pick one element as the pivot (often the last element). We then scan the rest of the
-              array and put everything smaller than the pivot on its left and everything larger on its
-              right.
+              Imagine you have a long piece of text and you want to find every occurrence of a
+              shorter pattern inside it. The naive approach tries the simplest possible strategy:
+              place the pattern at position 0 of the text, compare each character one by one, and
+              slide the pattern one step to the right when you&apos;re done — whether or not a match
+              was found.
             </Paragraph>
 
             <Paragraph>
-              <strong>Starting array:</strong> [38, 27, 43, 12, 52, 19] — Pivot = 19 (last element)
-            </Paragraph>
-
-            <CalloutBox>
-              Scanning: 38 &gt; 19 (right), 27 &gt; 19 (right), 43 &gt; 19 (right), 12 &lt; 19
-              (left) → after partition: [12, 19, 43, 27, 52, 38]
-            </CalloutBox>
-
-            <SubHeading>After partitioning</SubHeading>
-
-            <Paragraph>
-              19 is now in its final position. Everything to its left is smaller, everything to its
-              right is larger. Now repeat the process on each side.
+              Consider text = <strong>&quot;AABACAAB&quot;</strong> and pattern ={' '}
+              <strong>&quot;AAB&quot;</strong>. The algorithm tries the pattern at every index from
+              0 to 5 (since 8 &minus; 3 = 5 is the last valid start). At index 0 it finds{' '}
+              <strong>AAB</strong> — a match. It slides right and keeps searching, eventually finding
+              a second match at index 5.
             </Paragraph>
 
             <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" maxSortedCount={2} />
+              <MiniStringVisualizer algorithm="naive" />
             </div>
 
+            <SubHeading>The Sliding Window</SubHeading>
+
+            <Paragraph>
+              The core idea is a <em>sliding window</em> of size m (the pattern length) that moves
+              across the text one character at a time. At each position i, the window covers
+              text[i..i+m-1]. We ask: does this window exactly equal the pattern?
+            </Paragraph>
+
+            <Paragraph>
+              Because we move by exactly one position every iteration, we never skip any possible
+              starting location. This guarantees correctness — every match will be found. The cost
+              is that we may repeat comparisons we&apos;ve already done, which is why naive search
+              can be slow on certain inputs.
+            </Paragraph>
+
+            <SubHeading>Character Comparison</SubHeading>
+
+            <Paragraph>
+              At each position i, we start an inner loop at j = 0 and compare text[i + j] against
+              pattern[j]. If the characters match, j increments and we compare the next pair. The
+              inner loop continues until either every character in the pattern has matched (j reaches
+              m) or a mismatch is detected. At the first mismatch we immediately break the inner
+              loop — there is no need to compare the remaining characters for this window.
+            </Paragraph>
+
             <CalloutBox>
-              Quick sort is fast in practice because it sorts in-place without needing extra arrays
-              — unlike merge sort.
+              Key insight: When a mismatch occurs at position j inside the pattern, we discard all
+              the j comparisons we just made and start fresh at the next text position. This
+              re-comparing of already-seen characters is exactly the inefficiency that KMP fixes.
             </CalloutBox>
 
-            {/* ── Section 2 ── */}
-            <SectionHeading>Quick Sort Algorithm (Step by Step)</SectionHeading>
+            <SubHeading>When a Match Is Found</SubHeading>
+
+            <Paragraph>
+              If the inner loop reaches j == m, every character in the pattern matched the
+              corresponding character in the current window. We record i as a match starting
+              position. Crucially, the outer loop continues — we do NOT stop at the first match.
+              There may be overlapping or additional occurrences of the pattern later in the text,
+              and naive search finds all of them.
+            </Paragraph>
+
+            {/* ── Section 2: Step by Step ── */}
+            <SectionHeading>Naive Search Step by Step</SectionHeading>
+
+            <Paragraph>
+              Let&apos;s trace through text = <strong>&quot;AABACAAB&quot;</strong>, pattern ={' '}
+              <strong>&quot;AAB&quot;</strong> (n=8, m=3):
+            </Paragraph>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -391,29 +420,66 @@ export default function QuickSortPage() {
               ))}
             </ol>
 
-            {/* ── Section 3 ── */}
-            <SectionHeading>Quick Sort Code</SectionHeading>
+            <CalloutBox>
+              Trace for &quot;AABACAAB&quot; / &quot;AAB&quot;: i=0 → A=A, A=A, B=B ✓ match at 0.
+              i=1 → A=A, B≠A ✗. i=2 → B≠A ✗. i=3 → A=A, C≠A ✗. i=4 → C≠A ✗.
+              i=5 → A=A, A=A, B=B ✓ match at 5. Done — two matches found.
+            </CalloutBox>
+
+            {/* ── Section 3: Code ── */}
+            <SectionHeading>Naive Search Code</SectionHeading>
+
+            <Paragraph>
+              The implementation is straightforward — an outer loop over text positions and an inner
+              loop over pattern characters. No preprocessing is needed.
+            </Paragraph>
 
             <CodeBlock code={JAVA_CODE} />
 
-            {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Quick Sort</SectionHeading>
+            {/* ── Section 4: Complexity ── */}
+            <SectionHeading>Complexity Analysis</SectionHeading>
 
-            <ComplexityTable />
+            <ComplexityTable
+              rows={[
+                {
+                  case: 'Best',
+                  value: 'O(n)',
+                  note: 'Pattern found at first position or mismatches occur on first character every time',
+                },
+                {
+                  case: 'Average',
+                  value: 'O(n \u00d7 m)',
+                  note: 'n = text length, m = pattern length — inner loop runs partially on most positions',
+                },
+                {
+                  case: 'Worst',
+                  value: 'O(n \u00d7 m)',
+                  note: 'Pattern almost matches every position (e.g., text="AAAA", pattern="AAB") — inner loop runs to m-1 each time',
+                },
+              ]}
+            />
 
             <SubHeading>Space Complexity</SubHeading>
 
             <Paragraph>
-              <strong>O(log n) average — the recursion stack depth.</strong> No extra array is
-              needed, but the call stack grows with each recursive level. In the worst case (already
-              sorted input with a bad pivot), the stack can reach O(n).
+              <strong>O(1)</strong> — no extra data structures are used. The algorithm operates
+              directly on the input strings using only two integer counters (i and j). This is one
+              of its main advantages over more sophisticated algorithms that require preprocessing
+              arrays.
+            </Paragraph>
+
+            <Paragraph>
+              In practice, naive search performs well when the pattern is short or when mismatches
+              tend to occur early in the inner loop. For long patterns with repetitive characters
+              (like searching for &quot;AAAB&quot; in &quot;AAAAAAAAAA...&quot;), performance
+              degrades to O(n &times; m). This is the scenario where KMP shines.
             </Paragraph>
 
             {/* Closing card */}
             <div
               style={{
-                background: '#f0f7ff',
-                border: '0.5px solid #d4e6ff',
+                background: '#f0fdf4',
+                border: '0.5px solid #99f6e4',
                 borderRadius: 14,
                 padding: '24px 28px',
                 marginTop: 40,
@@ -428,7 +494,7 @@ export default function QuickSortPage() {
                   marginBottom: 10,
                 }}
               >
-                Excellent!
+                Up next: KMP Algorithm
               </div>
               <p
                 style={{
@@ -440,17 +506,17 @@ export default function QuickSortPage() {
                   marginBottom: 16,
                 }}
               >
-                You&apos;ve now mastered the three most important comparison-based sorting algorithms.
-                Bubble Sort, Insertion Sort, Merge Sort, and Quick Sort form the foundation of how
-                computers organize data efficiently. Experiment in the visualizer to see them in
-                action on different arrays.
+                Now that you understand the brute-force approach and its limitations, the KMP
+                (Knuth-Morris-Pratt) algorithm shows how to avoid re-comparing already-matched
+                characters. By building a failure function from the pattern, KMP achieves O(n + m)
+                — a dramatic improvement for patterns with repeated characters.
               </p>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
-                  href="/learn-dsa"
+                  href="/learn-dsa/kmp"
                   style={{
-                    background: '#6FB5FF',
+                    background: '#0d9488',
                     color: '#fff',
                     borderRadius: 8,
                     padding: '9px 18px',
@@ -460,13 +526,13 @@ export default function QuickSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Back to Sorting →
+                  Next: KMP Algorithm →
                 </Link>
                 <Link
-                  href="/visualizer/sorting"
+                  href="/visualizer/string-matching"
                   style={{
-                    background: '#dbeeff',
-                    color: '#1a6bb5',
+                    background: '#ccfbf1',
+                    color: '#115e59',
                     borderRadius: 8,
                     padding: '9px 18px',
                     fontFamily: 'var(--font-nunito)',

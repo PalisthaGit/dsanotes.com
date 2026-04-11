@@ -263,6 +263,7 @@ export default function SortingVisualizer({
   const handleReset = useCallback(() => {
     handleStopSorting();
     resetArray();
+    setVisualStep(undefined);
   }, [handleStopSorting, resetArray]);
 
   const handleSpeedChange = useCallback(

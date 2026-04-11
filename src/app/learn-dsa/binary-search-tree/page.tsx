@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LearnSidebar } from '../sidebar'
-import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
+import MiniDSVisualizer from '@/components/visualizers/data-structures/MiniDSVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Quick Sort Explained | Learn DSA',
+  title: 'Binary Search Tree Explained | Learn DSA',
   description:
-    'Learn how Quick Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how a Binary Search Tree works with the BST property, insert, search, delete, in-order traversal, and Java code examples.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -108,19 +108,13 @@ function CodeBlock({ code }: { code: string }) {
   )
 }
 
-function ComplexityTable() {
-  const rows = [
-    { case: 'Best', value: 'O(n log n)', note: 'Pivot always splits array evenly' },
-    { case: 'Average', value: 'O(n log n)', note: 'Random pivots usually produce balanced splits' },
-    { case: 'Worst', value: 'O(n²)', note: 'Pivot is always the smallest or largest — sorted/reverse-sorted input' },
-  ]
-
+function ComplexityTable({ rows }: { rows: { case: string; value: string; note: string }[] }) {
   return (
     <div style={{ overflowX: 'auto', marginBottom: 24 }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f0f7ff' }}>
-            {['Case', 'Time Complexity', 'Notes'].map((h) => (
+            {['Operation', 'Time Complexity', 'Notes'].map((h) => (
               <th
                 key={h}
                 style={{
@@ -186,46 +180,75 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'If the array has one or zero elements, return.',
-  'Pick a pivot (last element is common).',
-  'Partition: move elements smaller than pivot to the left, larger to the right.',
-  'Place the pivot in its final sorted position.',
-  'Recursively sort the left sub-array.',
-  'Recursively sort the right sub-array.',
+  'Start at the root node and compare the target value against the current node.',
+  'If target is smaller, move to the left child; if larger, move to the right child.',
+  'Repeat until you find the value or reach a null — a null means the value is not in the tree.',
+  'To insert, follow the same path and place the new node at the first null position you reach.',
+  'In-order traversal (left → node → right) visits all nodes in sorted ascending order.',
 ]
 
-const JAVA_CODE = `class QuickSortExample {
-    public static int partition(int[] arr, int low, int high) {
-        int pivot = arr[high];
-        int i = low - 1;
+const JAVA_CODE = `class BST {
 
-        for (int j = low; j < high; j++) {
-            if (arr[j] <= pivot) {
-                i++;
-                int temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
-            }
-        }
-        // Place pivot in its correct position
-        int temp = arr[i + 1]; arr[i + 1] = arr[high]; arr[high] = temp;
-        return i + 1;
+    static class Node {
+        int value;
+        Node left, right;
+        Node(int value) { this.value = value; }
     }
 
-    public static void quickSort(int[] arr, int low, int high) {
-        if (low >= high) return;
-        int pivotIndex = partition(arr, low, high);
-        quickSort(arr, low, pivotIndex - 1);
-        quickSort(arr, pivotIndex + 1, high);
+    Node root;
+
+    // Insert a value into the BST — O(log n) average
+    void insert(int value) {
+        root = insertRec(root, value);
+    }
+
+    private Node insertRec(Node node, int value) {
+        if (node == null) return new Node(value);
+        if (value < node.value)      node.left  = insertRec(node.left,  value);
+        else if (value > node.value) node.right = insertRec(node.right, value);
+        return node; // duplicate values are ignored
+    }
+
+    // Search for a value — O(log n) average
+    boolean search(int value) {
+        return searchRec(root, value);
+    }
+
+    private boolean searchRec(Node node, int value) {
+        if (node == null) return false;
+        if (value == node.value) return true;
+        return value < node.value
+            ? searchRec(node.left,  value)
+            : searchRec(node.right, value);
+    }
+
+    // In-order traversal: prints values in sorted order — O(n)
+    void inorder() {
+        inorderRec(root);
+        System.out.println();
+    }
+
+    private void inorderRec(Node node) {
+        if (node == null) return;
+        inorderRec(node.left);
+        System.out.print(node.value + " ");
+        inorderRec(node.right);
     }
 
     public static void main(String[] args) {
-        int[] arr = {38, 27, 43, 12, 52, 19};
-        quickSort(arr, 0, arr.length - 1);
-        System.out.println("Sorted array:");
-        for (int num : arr) System.out.print(num + " ");
+        BST tree = new BST();
+        tree.insert(50);
+        tree.insert(30);
+        tree.insert(70);
+        tree.insert(20);
+        tree.insert(40);
+        tree.inorder();            // 20 30 40 50 70
+        System.out.println(tree.search(40));  // true
+        System.out.println(tree.search(99));  // false
     }
 }`
 
-export default function QuickSortPage() {
+export default function BinarySearchTreePage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -244,7 +267,7 @@ export default function QuickSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Quick Sort</span>
+          <span style={{ color: '#6FB5FF' }}>Binary Search Tree</span>
         </div>
 
         {/* Two-column layout */}
@@ -262,8 +285,8 @@ export default function QuickSortPage() {
             <span
               style={{
                 display: 'inline-block',
-                background: '#dbeeff',
-                color: '#1a6bb5',
+                background: '#fff7ed',
+                color: '#c2410c',
                 fontFamily: 'var(--font-nunito)',
                 fontWeight: 700,
                 fontSize: 11,
@@ -273,7 +296,7 @@ export default function QuickSortPage() {
                 letterSpacing: '0.05em',
               }}
             >
-              SORTING ALGORITHMS
+              DATA STRUCTURES
             </span>
 
             {/* Title */}
@@ -287,7 +310,7 @@ export default function QuickSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Quick Sort
+              Binary Search Tree
             </h1>
 
             {/* Meta row */}
@@ -300,78 +323,85 @@ export default function QuickSortPage() {
                 flexWrap: 'wrap',
               }}
             >
-              <span
-                style={{
-                  fontFamily: 'var(--font-nunito)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: '#6b7280',
-                }}
-              >
-                🕐 9 min read
+              <span style={{ fontFamily: 'var(--font-nunito)', fontWeight: 600, fontSize: 13, color: '#6b7280' }}>
+                🕐 10 min read
               </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-nunito)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: '#6b7280',
-                }}
-              >
-                📗 Intermediate
+              <span style={{ fontFamily: 'var(--font-nunito)', fontWeight: 600, fontSize: 13, color: '#6b7280' }}>
+                📙 Intermediate
               </span>
             </div>
 
-            {/* Inbuilt visualizer */}
+            {/* Mini visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" />
+              <MiniDSVisualizer type="bst" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Quick sort picks a &apos;pivot&apos; element and rearranges the array so all smaller
-              elements come before it and all larger elements come after. Then it recursively does the
-              same for each side.
+              A Binary Search Tree (BST) is a tree where every node follows one rule: all values in
+              the <strong>left subtree are smaller</strong> than the node, and all values in the{' '}
+              <strong>right subtree are larger</strong>. This property makes searching as efficient
+              as binary search — O(log n) on average.
             </CalloutBox>
 
-            {/* ── Section 1 ── */}
-            <SectionHeading>How Quick Sort Works</SectionHeading>
-
-            <SubHeading>Choosing a pivot</SubHeading>
+            {/* Section 1 */}
+            <SectionHeading>What is a BST?</SectionHeading>
 
             <Paragraph>
-              We pick one element as the pivot (often the last element). We then scan the rest of the
-              array and put everything smaller than the pivot on its left and everything larger on its
-              right.
+              Each node in a BST has at most two children: a left child and a right child. The BST
+              property is maintained for every node in the entire tree, not just the root — this is
+              what makes it so powerful.
             </Paragraph>
 
             <Paragraph>
-              <strong>Starting array:</strong> [38, 27, 43, 12, 52, 19] — Pivot = 19 (last element)
+              When the tree is balanced, each comparison eliminates roughly half the remaining nodes,
+              giving O(log n) search time. An unbalanced tree — where all nodes are inserted in
+              sorted order — degrades into a linked list with O(n) operations.
             </Paragraph>
 
             <CalloutBox>
-              Scanning: 38 &gt; 19 (right), 27 &gt; 19 (right), 43 &gt; 19 (right), 12 &lt; 19
-              (left) → after partition: [12, 19, 43, 27, 52, 38]
+              {'        50\n       /  \\\n      30   70\n     / \\     \\\n    20  40   80'}
             </CalloutBox>
 
-            <SubHeading>After partitioning</SubHeading>
+            {/* Section 2 */}
+            <SectionHeading>Key Operations</SectionHeading>
 
+            <SubHeading>Insert — O(log n) average</SubHeading>
             <Paragraph>
-              19 is now in its final position. Everything to its left is smaller, everything to its
-              right is larger. Now repeat the process on each side.
+              Start at the root and compare the new value against each node. Go left if smaller, go
+              right if larger, and repeat until you reach an empty spot — that is where the new node
+              is placed.
             </Paragraph>
 
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" maxSortedCount={2} />
-            </div>
+            <SubHeading>Search — O(log n) average</SubHeading>
+            <Paragraph>
+              Follow the same left/right decision at each node. If you find a match, return true. If
+              you reach a null node, the value does not exist in the tree.
+            </Paragraph>
 
-            <CalloutBox>
-              Quick sort is fast in practice because it sorts in-place without needing extra arrays
-              — unlike merge sort.
-            </CalloutBox>
+            <SubHeading>Delete — O(log n) average</SubHeading>
+            <Paragraph>
+              Deleting a node has three cases: the node has no children (just remove it), one child
+              (replace the node with its child), or two children (replace the node&apos;s value with
+              its in-order successor — the smallest value in its right subtree — then delete that
+              successor).
+            </Paragraph>
 
-            {/* ── Section 2 ── */}
-            <SectionHeading>Quick Sort Algorithm (Step by Step)</SectionHeading>
+            {/* Section 3 */}
+            <SectionHeading>In-Order Traversal</SectionHeading>
+
+            <Paragraph>
+              In-order traversal visits nodes in the sequence: <strong>left subtree → current node → right subtree</strong>.
+              Because of the BST property, this always visits nodes in ascending sorted order.
+            </Paragraph>
+
+            <Paragraph>
+              This is useful for producing a sorted list from a BST, or for checking whether a given
+              tree is a valid BST by verifying that the sequence is strictly increasing.
+            </Paragraph>
+
+            {/* Algorithm steps */}
+            <SectionHeading>BST Algorithm Steps</SectionHeading>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -391,23 +421,23 @@ export default function QuickSortPage() {
               ))}
             </ol>
 
-            {/* ── Section 3 ── */}
-            <SectionHeading>Quick Sort Code</SectionHeading>
+            {/* Section 4 */}
+            <SectionHeading>BST Code</SectionHeading>
 
             <CodeBlock code={JAVA_CODE} />
 
-            {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Quick Sort</SectionHeading>
+            {/* Section 5 */}
+            <SectionHeading>Complexity of BST</SectionHeading>
 
-            <ComplexityTable />
-
-            <SubHeading>Space Complexity</SubHeading>
-
-            <Paragraph>
-              <strong>O(log n) average — the recursion stack depth.</strong> No extra array is
-              needed, but the call stack grows with each recursive level. In the worst case (already
-              sorted input with a bad pivot), the stack can reach O(n).
-            </Paragraph>
+            <ComplexityTable
+              rows={[
+                { case: 'Search', value: 'O(log n) avg / O(n) worst', note: 'Worst case on a completely unbalanced tree' },
+                { case: 'Insert', value: 'O(log n) avg / O(n) worst', note: 'Sorted input creates a degenerate tree' },
+                { case: 'Delete', value: 'O(log n) avg / O(n) worst', note: 'Must find node before removing' },
+                { case: 'In-order Traversal', value: 'O(n)', note: 'Every node is visited exactly once' },
+                { case: 'Space', value: 'O(n)', note: 'One node allocated per value stored' },
+              ]}
+            />
 
             {/* Closing card */}
             <div
@@ -428,7 +458,7 @@ export default function QuickSortPage() {
                   marginBottom: 10,
                 }}
               >
-                Excellent!
+                You&apos;ve got the basics!
               </div>
               <p
                 style={{
@@ -440,15 +470,13 @@ export default function QuickSortPage() {
                   marginBottom: 16,
                 }}
               >
-                You&apos;ve now mastered the three most important comparison-based sorting algorithms.
-                Bubble Sort, Insertion Sort, Merge Sort, and Quick Sort form the foundation of how
-                computers organize data efficiently. Experiment in the visualizer to see them in
-                action on different arrays.
+                You now understand how the BST property enables fast O(log n) operations and how
+                in-order traversal produces a sorted sequence. Next up, the Heap — a tree that
+                always keeps the minimum (or maximum) value instantly accessible at the root.
               </p>
-
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
-                  href="/learn-dsa"
+                  href="/learn-dsa/heap"
                   style={{
                     background: '#6FB5FF',
                     color: '#fff',
@@ -460,22 +488,7 @@ export default function QuickSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Back to Sorting →
-                </Link>
-                <Link
-                  href="/visualizer/sorting"
-                  style={{
-                    background: '#dbeeff',
-                    color: '#1a6bb5',
-                    borderRadius: 8,
-                    padding: '9px 18px',
-                    fontFamily: 'var(--font-nunito)',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Practice in Visualizer
+                  Next: Heap →
                 </Link>
               </div>
             </div>

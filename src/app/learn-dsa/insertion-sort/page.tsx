@@ -351,26 +351,6 @@ export default function InsertionSortPage() {
               <MiniSortingVisualizer initialAlgorithm="insertion" maxSortedCount={2} />
             </div>
 
-            <SubHeading>Inserting 43</SubHeading>
-
-            <Paragraph>
-              43 &gt; 38, so it stays in place. No shifting needed.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="insertion" maxSortedCount={3} />
-            </div>
-
-            <SubHeading>Inserting the rest</SubHeading>
-
-            <Paragraph>
-              We continue this process for 12, 52, and 19, each time finding the right spot.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="insertion" startFromSortedCount={3} />
-            </div>
-
             <CalloutBox>
               Insertion sort is efficient for small or nearly-sorted lists. Each pass places exactly
               one element into its final position.

@@ -193,6 +193,7 @@ export default function MiniSortingVisualizer({
   const handleReset = useCallback(() => {
     handleStopSorting();
     setCustomArray(DEFAULT_ARRAY);
+    setVisualStep(undefined);
   }, [handleStopSorting, setCustomArray]);
 
   const isDone = atLimit || steps[currentStep]?.stepType === "complete";

@@ -368,16 +368,6 @@ export default function MergeSortPage() {
               <MiniSortingVisualizer initialAlgorithm="merge" maxSortedCount={3} />
             </div>
 
-            <SubHeading>Step 3 — Final merge</SubHeading>
-
-            <Paragraph>
-              Merge [27, 38, 43] and [12, 19, 52] by comparing element-by-element.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="merge" startFromSortedCount={3} />
-            </div>
-
             <CalloutBox>
               Merge sort always splits and merges the same way — there&apos;s no best or worst
               arrangement. Every array takes O(n log n) steps.

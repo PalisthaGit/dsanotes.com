@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LearnSidebar } from '../sidebar'
-import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
+import MiniDSVisualizer from '@/components/visualizers/data-structures/MiniDSVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Quick Sort Explained | Learn DSA',
+  title: 'Hash Map Explained | Learn DSA',
   description:
-    'Learn how Quick Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how a Hash Map works with hashing, collision handling, key-value operations, and Java code examples.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -108,19 +108,13 @@ function CodeBlock({ code }: { code: string }) {
   )
 }
 
-function ComplexityTable() {
-  const rows = [
-    { case: 'Best', value: 'O(n log n)', note: 'Pivot always splits array evenly' },
-    { case: 'Average', value: 'O(n log n)', note: 'Random pivots usually produce balanced splits' },
-    { case: 'Worst', value: 'O(n²)', note: 'Pivot is always the smallest or largest — sorted/reverse-sorted input' },
-  ]
-
+function ComplexityTable({ rows }: { rows: { case: string; value: string; note: string }[] }) {
   return (
     <div style={{ overflowX: 'auto', marginBottom: 24 }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f0f7ff' }}>
-            {['Case', 'Time Complexity', 'Notes'].map((h) => (
+            {['Operation', 'Time Complexity', 'Notes'].map((h) => (
               <th
                 key={h}
                 style={{
@@ -186,46 +180,45 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'If the array has one or zero elements, return.',
-  'Pick a pivot (last element is common).',
-  'Partition: move elements smaller than pivot to the left, larger to the right.',
-  'Place the pivot in its final sorted position.',
-  'Recursively sort the left sub-array.',
-  'Recursively sort the right sub-array.',
+  'Compute a hash code from the key — this converts the key into an integer index.',
+  'Use the index to directly jump to the correct bucket in the underlying array.',
+  'Store the key-value pair in that bucket — retrieval later uses the same index.',
+  'If two keys hash to the same bucket (collision), chain them in a linked list at that slot.',
+  'On get or remove, hash the key, go to the bucket, then scan the chain for an exact key match.',
 ]
 
-const JAVA_CODE = `class QuickSortExample {
-    public static int partition(int[] arr, int low, int high) {
-        int pivot = arr[high];
-        int i = low - 1;
+const JAVA_CODE = `import java.util.HashMap;
 
-        for (int j = low; j < high; j++) {
-            if (arr[j] <= pivot) {
-                i++;
-                int temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
-            }
-        }
-        // Place pivot in its correct position
-        int temp = arr[i + 1]; arr[i + 1] = arr[high]; arr[high] = temp;
-        return i + 1;
-    }
-
-    public static void quickSort(int[] arr, int low, int high) {
-        if (low >= high) return;
-        int pivotIndex = partition(arr, low, high);
-        quickSort(arr, low, pivotIndex - 1);
-        quickSort(arr, pivotIndex + 1, high);
-    }
-
+public class HashMapExample {
     public static void main(String[] args) {
-        int[] arr = {38, 27, 43, 12, 52, 19};
-        quickSort(arr, 0, arr.length - 1);
-        System.out.println("Sorted array:");
-        for (int num : arr) System.out.print(num + " ");
+        // Create a HashMap with String keys and Integer values
+        HashMap<String, Integer> scores = new HashMap<>();
+
+        // put: add or update a key-value pair — O(1) average
+        scores.put("Alice", 95);
+        scores.put("Bob", 82);
+        scores.put("Charlie", 78);
+
+        // get: retrieve a value by key — O(1) average
+        System.out.println(scores.get("Alice"));   // 95
+        System.out.println(scores.get("Bob"));     // 82
+
+        // containsKey: check if a key exists — O(1) average
+        System.out.println(scores.containsKey("Charlie")); // true
+        System.out.println(scores.containsKey("Diana"));   // false
+
+        // remove: delete a key-value pair — O(1) average
+        scores.remove("Bob");
+        System.out.println(scores.containsKey("Bob")); // false
+
+        // Iterate over all entries
+        for (HashMap.Entry<String, Integer> entry : scores.entrySet()) {
+            System.out.println(entry.getKey() + " -> " + entry.getValue());
+        }
     }
 }`
 
-export default function QuickSortPage() {
+export default function HashMapPage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -244,7 +237,7 @@ export default function QuickSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Quick Sort</span>
+          <span style={{ color: '#6FB5FF' }}>Hash Map</span>
         </div>
 
         {/* Two-column layout */}
@@ -262,8 +255,8 @@ export default function QuickSortPage() {
             <span
               style={{
                 display: 'inline-block',
-                background: '#dbeeff',
-                color: '#1a6bb5',
+                background: '#fff7ed',
+                color: '#c2410c',
                 fontFamily: 'var(--font-nunito)',
                 fontWeight: 700,
                 fontSize: 11,
@@ -273,7 +266,7 @@ export default function QuickSortPage() {
                 letterSpacing: '0.05em',
               }}
             >
-              SORTING ALGORITHMS
+              DATA STRUCTURES
             </span>
 
             {/* Title */}
@@ -287,7 +280,7 @@ export default function QuickSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Quick Sort
+              Hash Map
             </h1>
 
             {/* Meta row */}
@@ -300,78 +293,81 @@ export default function QuickSortPage() {
                 flexWrap: 'wrap',
               }}
             >
-              <span
-                style={{
-                  fontFamily: 'var(--font-nunito)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: '#6b7280',
-                }}
-              >
-                🕐 9 min read
+              <span style={{ fontFamily: 'var(--font-nunito)', fontWeight: 600, fontSize: 13, color: '#6b7280' }}>
+                🕐 8 min read
               </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-nunito)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: '#6b7280',
-                }}
-              >
-                📗 Intermediate
+              <span style={{ fontFamily: 'var(--font-nunito)', fontWeight: 600, fontSize: 13, color: '#6b7280' }}>
+                📙 Intermediate
               </span>
             </div>
 
-            {/* Inbuilt visualizer */}
+            {/* Mini visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" />
+              <MiniDSVisualizer type="hash-map" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Quick sort picks a &apos;pivot&apos; element and rearranges the array so all smaller
-              elements come before it and all larger elements come after. Then it recursively does the
-              same for each side.
+              A hash map (also called a hash table or dictionary) stores data as{' '}
+              <strong>key-value pairs</strong> and gives you O(1) average-time access to any value
+              as long as you know its key. It achieves this speed by converting the key into an
+              array index using a <strong>hash function</strong>.
             </CalloutBox>
 
-            {/* ── Section 1 ── */}
-            <SectionHeading>How Quick Sort Works</SectionHeading>
-
-            <SubHeading>Choosing a pivot</SubHeading>
+            {/* Section 1 */}
+            <SectionHeading>What is a Hash Map?</SectionHeading>
 
             <Paragraph>
-              We pick one element as the pivot (often the last element). We then scan the rest of the
-              array and put everything smaller than the pivot on its left and everything larger on its
-              right.
+              Imagine you have a locker room with numbered lockers. Instead of searching every
+              locker, you use a formula to compute exactly which locker holds your item — that
+              formula is the hash function, and the locker number is the index.
             </Paragraph>
 
             <Paragraph>
-              <strong>Starting array:</strong> [38, 27, 43, 12, 52, 19] — Pivot = 19 (last element)
+              Hash maps are one of the most frequently used data structures in software development.
+              They power everything from database indexes to counting word frequencies in text
+              processing.
+            </Paragraph>
+
+            {/* Section 2 */}
+            <SectionHeading>How Hashing Works</SectionHeading>
+
+            <Paragraph>
+              A <strong>hash function</strong> takes a key (like a string or integer) and produces
+              a non-negative integer called a hash code. That code is then reduced (usually via
+              modulo) to fit inside the bounds of the internal array.
             </Paragraph>
 
             <CalloutBox>
-              Scanning: 38 &gt; 19 (right), 27 &gt; 19 (right), 43 &gt; 19 (right), 12 &lt; 19
-              (left) → after partition: [12, 19, 43, 27, 52, 38]
+              Example: key = &quot;Alice&quot; → hashCode() = 63609 → 63609 % 16 = 9 → stored at index 9
             </CalloutBox>
-
-            <SubHeading>After partitioning</SubHeading>
 
             <Paragraph>
-              19 is now in its final position. Everything to its left is smaller, everything to its
-              right is larger. Now repeat the process on each side.
+              A good hash function distributes keys evenly across all buckets to minimise collisions
+              and keep average-case performance at O(1).
             </Paragraph>
 
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" maxSortedCount={2} />
-            </div>
+            {/* Section 3 */}
+            <SectionHeading>Handling Collisions</SectionHeading>
+
+            <Paragraph>
+              A <strong>collision</strong> occurs when two different keys produce the same bucket
+              index. The most common solution is <strong>separate chaining</strong>: each bucket
+              holds a linked list, and all colliding key-value pairs are appended to that list.
+            </Paragraph>
+
+            <Paragraph>
+              On a get or remove, you first jump to the correct bucket (O(1)), then scan the chain
+              for the exact key match. If the hash function is good, chains stay short and lookups
+              remain fast.
+            </Paragraph>
 
             <CalloutBox>
-              Quick sort is fast in practice because it sorts in-place without needing extra arrays
-              — unlike merge sort.
+              Bucket 9: [&quot;Alice&quot;→95] → [&quot;Eve&quot;→88] → null — two keys collided at index 9 and are chained together.
             </CalloutBox>
 
-            {/* ── Section 2 ── */}
-            <SectionHeading>Quick Sort Algorithm (Step by Step)</SectionHeading>
+            {/* Algorithm steps */}
+            <SectionHeading>Hash Map Algorithm Steps</SectionHeading>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -391,23 +387,23 @@ export default function QuickSortPage() {
               ))}
             </ol>
 
-            {/* ── Section 3 ── */}
-            <SectionHeading>Quick Sort Code</SectionHeading>
+            {/* Section 4 */}
+            <SectionHeading>Hash Map Code</SectionHeading>
 
             <CodeBlock code={JAVA_CODE} />
 
-            {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Quick Sort</SectionHeading>
+            {/* Section 5 */}
+            <SectionHeading>Complexity of Hash Map</SectionHeading>
 
-            <ComplexityTable />
-
-            <SubHeading>Space Complexity</SubHeading>
-
-            <Paragraph>
-              <strong>O(log n) average — the recursion stack depth.</strong> No extra array is
-              needed, but the call stack grows with each recursive level. In the worst case (already
-              sorted input with a bad pivot), the stack can reach O(n).
-            </Paragraph>
+            <ComplexityTable
+              rows={[
+                { case: 'Get', value: 'O(1) avg / O(n) worst', note: 'Worst case when all keys collide into one bucket' },
+                { case: 'Put', value: 'O(1) avg / O(n) worst', note: 'Worst case due to collision chaining' },
+                { case: 'Remove', value: 'O(1) avg', note: 'Hash to bucket, then remove from chain' },
+                { case: 'ContainsKey', value: 'O(1) avg', note: 'Same as get — hash and check' },
+                { case: 'Space', value: 'O(n)', note: 'Proportional to the number of entries' },
+              ]}
+            />
 
             {/* Closing card */}
             <div
@@ -428,7 +424,7 @@ export default function QuickSortPage() {
                   marginBottom: 10,
                 }}
               >
-                Excellent!
+                You&apos;ve got the basics!
               </div>
               <p
                 style={{
@@ -440,15 +436,14 @@ export default function QuickSortPage() {
                   marginBottom: 16,
                 }}
               >
-                You&apos;ve now mastered the three most important comparison-based sorting algorithms.
-                Bubble Sort, Insertion Sort, Merge Sort, and Quick Sort form the foundation of how
-                computers organize data efficiently. Experiment in the visualizer to see them in
-                action on different arrays.
+                Hash maps are one of the most powerful tools in a developer&apos;s toolkit — once
+                you understand hashing and collision handling, you can solve many problems in O(1)
+                average time. Next up, the Binary Search Tree — a structure that keeps data sorted
+                for fast O(log n) operations.
               </p>
-
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
-                  href="/learn-dsa"
+                  href="/learn-dsa/binary-search-tree"
                   style={{
                     background: '#6FB5FF',
                     color: '#fff',
@@ -460,22 +455,7 @@ export default function QuickSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Back to Sorting →
-                </Link>
-                <Link
-                  href="/visualizer/sorting"
-                  style={{
-                    background: '#dbeeff',
-                    color: '#1a6bb5',
-                    borderRadius: 8,
-                    padding: '9px 18px',
-                    fontFamily: 'var(--font-nunito)',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Practice in Visualizer
+                  Next: Binary Search Tree →
                 </Link>
               </div>
             </div>

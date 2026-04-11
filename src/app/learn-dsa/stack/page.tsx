@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LearnSidebar } from '../sidebar'
-import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
+import MiniDSVisualizer from '@/components/visualizers/data-structures/MiniDSVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Quick Sort Explained | Learn DSA',
+  title: 'Stack Explained | Learn DSA',
   description:
-    'Learn how Quick Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how a Stack works with LIFO ordering, push/pop/peek operations, real-world uses, and Java code examples.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -108,19 +108,13 @@ function CodeBlock({ code }: { code: string }) {
   )
 }
 
-function ComplexityTable() {
-  const rows = [
-    { case: 'Best', value: 'O(n log n)', note: 'Pivot always splits array evenly' },
-    { case: 'Average', value: 'O(n log n)', note: 'Random pivots usually produce balanced splits' },
-    { case: 'Worst', value: 'O(n²)', note: 'Pivot is always the smallest or largest — sorted/reverse-sorted input' },
-  ]
-
+function ComplexityTable({ rows }: { rows: { case: string; value: string; note: string }[] }) {
   return (
     <div style={{ overflowX: 'auto', marginBottom: 24 }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f0f7ff' }}>
-            {['Case', 'Time Complexity', 'Notes'].map((h) => (
+            {['Operation', 'Time Complexity', 'Notes'].map((h) => (
               <th
                 key={h}
                 style={{
@@ -186,46 +180,53 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'If the array has one or zero elements, return.',
-  'Pick a pivot (last element is common).',
-  'Partition: move elements smaller than pivot to the left, larger to the right.',
-  'Place the pivot in its final sorted position.',
-  'Recursively sort the left sub-array.',
-  'Recursively sort the right sub-array.',
+  'Push: place a new element on top of the stack — it becomes the new top.',
+  'Pop: remove and return the top element — the element below it becomes the new top.',
+  'Peek: read the top element without removing it — useful to inspect without modifying.',
+  'isEmpty: check whether the stack contains any elements before popping to avoid errors.',
+  'The last element pushed is always the first element popped — this is the LIFO rule.',
 ]
 
-const JAVA_CODE = `class QuickSortExample {
-    public static int partition(int[] arr, int low, int high) {
-        int pivot = arr[high];
-        int i = low - 1;
+const JAVA_CODE = `import java.util.LinkedList;
 
-        for (int j = low; j < high; j++) {
-            if (arr[j] <= pivot) {
-                i++;
-                int temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
-            }
-        }
-        // Place pivot in its correct position
-        int temp = arr[i + 1]; arr[i + 1] = arr[high]; arr[high] = temp;
-        return i + 1;
+class Stack<T> {
+    private LinkedList<T> list = new LinkedList<>();
+
+    // Push an element onto the top — O(1)
+    public void push(T item) {
+        list.addFirst(item);
     }
 
-    public static void quickSort(int[] arr, int low, int high) {
-        if (low >= high) return;
-        int pivotIndex = partition(arr, low, high);
-        quickSort(arr, low, pivotIndex - 1);
-        quickSort(arr, pivotIndex + 1, high);
+    // Remove and return the top element — O(1)
+    public T pop() {
+        if (isEmpty()) throw new RuntimeException("Stack is empty");
+        return list.removeFirst();
+    }
+
+    // Return the top element without removing it — O(1)
+    public T peek() {
+        if (isEmpty()) throw new RuntimeException("Stack is empty");
+        return list.getFirst();
+    }
+
+    // Check if the stack is empty — O(1)
+    public boolean isEmpty() {
+        return list.isEmpty();
     }
 
     public static void main(String[] args) {
-        int[] arr = {38, 27, 43, 12, 52, 19};
-        quickSort(arr, 0, arr.length - 1);
-        System.out.println("Sorted array:");
-        for (int num : arr) System.out.print(num + " ");
+        Stack<Integer> stack = new Stack<>();
+        stack.push(10);
+        stack.push(20);
+        stack.push(30);
+        System.out.println(stack.peek()); // 30
+        System.out.println(stack.pop());  // 30
+        System.out.println(stack.pop());  // 20
+        System.out.println(stack.isEmpty()); // false
     }
 }`
 
-export default function QuickSortPage() {
+export default function StackPage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -244,7 +245,7 @@ export default function QuickSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Quick Sort</span>
+          <span style={{ color: '#6FB5FF' }}>Stack</span>
         </div>
 
         {/* Two-column layout */}
@@ -262,8 +263,8 @@ export default function QuickSortPage() {
             <span
               style={{
                 display: 'inline-block',
-                background: '#dbeeff',
-                color: '#1a6bb5',
+                background: '#fff7ed',
+                color: '#c2410c',
                 fontFamily: 'var(--font-nunito)',
                 fontWeight: 700,
                 fontSize: 11,
@@ -273,7 +274,7 @@ export default function QuickSortPage() {
                 letterSpacing: '0.05em',
               }}
             >
-              SORTING ALGORITHMS
+              DATA STRUCTURES
             </span>
 
             {/* Title */}
@@ -287,7 +288,7 @@ export default function QuickSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Quick Sort
+              Stack
             </h1>
 
             {/* Meta row */}
@@ -300,78 +301,86 @@ export default function QuickSortPage() {
                 flexWrap: 'wrap',
               }}
             >
-              <span
-                style={{
-                  fontFamily: 'var(--font-nunito)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: '#6b7280',
-                }}
-              >
-                🕐 9 min read
+              <span style={{ fontFamily: 'var(--font-nunito)', fontWeight: 600, fontSize: 13, color: '#6b7280' }}>
+                🕐 5 min read
               </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-nunito)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: '#6b7280',
-                }}
-              >
-                📗 Intermediate
+              <span style={{ fontFamily: 'var(--font-nunito)', fontWeight: 600, fontSize: 13, color: '#6b7280' }}>
+                📘 Beginner
               </span>
             </div>
 
-            {/* Inbuilt visualizer */}
+            {/* Mini visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" />
+              <MiniDSVisualizer type="stack" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Quick sort picks a &apos;pivot&apos; element and rearranges the array so all smaller
-              elements come before it and all larger elements come after. Then it recursively does the
-              same for each side.
+              A stack is a collection that follows <strong>LIFO</strong> — Last In, First Out. The
+              last element you push onto the stack is always the first one you get back when you pop.
+              Think of a stack of plates: you always take the top one first.
             </CalloutBox>
 
-            {/* ── Section 1 ── */}
-            <SectionHeading>How Quick Sort Works</SectionHeading>
-
-            <SubHeading>Choosing a pivot</SubHeading>
+            {/* Section 1 */}
+            <SectionHeading>What is a Stack?</SectionHeading>
 
             <Paragraph>
-              We pick one element as the pivot (often the last element). We then scan the rest of the
-              array and put everything smaller than the pivot on its left and everything larger on its
-              right.
+              A stack restricts how you interact with its elements. You can only add to or remove
+              from one end — called the <strong>top</strong>. This constraint makes stacks extremely
+              predictable and efficient.
             </Paragraph>
 
             <Paragraph>
-              <strong>Starting array:</strong> [38, 27, 43, 12, 52, 19] — Pivot = 19 (last element)
+              All three core operations — push, pop, and peek — run in <strong>O(1)</strong> time
+              because you always work with the top element only, never searching through the rest.
             </Paragraph>
 
             <CalloutBox>
-              Scanning: 38 &gt; 19 (right), 27 &gt; 19 (right), 43 &gt; 19 (right), 12 &lt; 19
-              (left) → after partition: [12, 19, 43, 27, 52, 38]
+              Push 10 → Push 20 → Push 30 → Stack: [10, 20, 30↑] → Pop returns 30 → Stack: [10, 20↑]
             </CalloutBox>
 
-            <SubHeading>After partitioning</SubHeading>
+            {/* Section 2 */}
+            <SectionHeading>Key Operations</SectionHeading>
 
+            <SubHeading>Push — O(1)</SubHeading>
             <Paragraph>
-              19 is now in its final position. Everything to its left is smaller, everything to its
-              right is larger. Now repeat the process on each side.
+              Adds a new element to the top of the stack. The new element immediately becomes the
+              top, and all previous elements shift conceptually one position down.
             </Paragraph>
 
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" maxSortedCount={2} />
-            </div>
+            <SubHeading>Pop — O(1)</SubHeading>
+            <Paragraph>
+              Removes and returns the top element. After popping, the element that was second from
+              the top is now the new top. Always check that the stack is not empty before popping.
+            </Paragraph>
 
-            <CalloutBox>
-              Quick sort is fast in practice because it sorts in-place without needing extra arrays
-              — unlike merge sort.
-            </CalloutBox>
+            <SubHeading>Peek — O(1)</SubHeading>
+            <Paragraph>
+              Returns the top element without removing it. This is useful when you need to inspect
+              what&apos;s on top before deciding whether to pop.
+            </Paragraph>
 
-            {/* ── Section 2 ── */}
-            <SectionHeading>Quick Sort Algorithm (Step by Step)</SectionHeading>
+            {/* Section 3 */}
+            <SectionHeading>Real-World Uses</SectionHeading>
+
+            <Paragraph>
+              The <strong>call stack</strong> in your program is literally a stack — when a function
+              calls another function, the new call is pushed on top, and when it returns, it is
+              popped off.
+            </Paragraph>
+
+            <Paragraph>
+              Text editors use a stack to implement <strong>undo</strong>: every action is pushed,
+              and Ctrl+Z pops the last action to reverse it.
+            </Paragraph>
+
+            <Paragraph>
+              Bracket matching (e.g., checking if <code>{`{[()]}`}</code> is valid) is solved
+              elegantly with a stack — push opening brackets, and pop when you see a closing one.
+            </Paragraph>
+
+            {/* Algorithm steps */}
+            <SectionHeading>Stack Algorithm Steps</SectionHeading>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -391,23 +400,23 @@ export default function QuickSortPage() {
               ))}
             </ol>
 
-            {/* ── Section 3 ── */}
-            <SectionHeading>Quick Sort Code</SectionHeading>
+            {/* Section 4 */}
+            <SectionHeading>Stack Code</SectionHeading>
 
             <CodeBlock code={JAVA_CODE} />
 
-            {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Quick Sort</SectionHeading>
+            {/* Section 5 */}
+            <SectionHeading>Complexity of Stack</SectionHeading>
 
-            <ComplexityTable />
-
-            <SubHeading>Space Complexity</SubHeading>
-
-            <Paragraph>
-              <strong>O(log n) average — the recursion stack depth.</strong> No extra array is
-              needed, but the call stack grows with each recursive level. In the worst case (already
-              sorted input with a bad pivot), the stack can reach O(n).
-            </Paragraph>
+            <ComplexityTable
+              rows={[
+                { case: 'Push', value: 'O(1)', note: 'Always added to the top' },
+                { case: 'Pop', value: 'O(1)', note: 'Always removed from the top' },
+                { case: 'Peek', value: 'O(1)', note: 'Top element is directly accessible' },
+                { case: 'Search', value: 'O(n)', note: 'Must pop elements to find a value' },
+                { case: 'Space', value: 'O(n)', note: 'One slot per element stored' },
+              ]}
+            />
 
             {/* Closing card */}
             <div
@@ -428,7 +437,7 @@ export default function QuickSortPage() {
                   marginBottom: 10,
                 }}
               >
-                Excellent!
+                You&apos;ve got the basics!
               </div>
               <p
                 style={{
@@ -440,15 +449,13 @@ export default function QuickSortPage() {
                   marginBottom: 16,
                 }}
               >
-                You&apos;ve now mastered the three most important comparison-based sorting algorithms.
-                Bubble Sort, Insertion Sort, Merge Sort, and Quick Sort form the foundation of how
-                computers organize data efficiently. Experiment in the visualizer to see them in
-                action on different arrays.
+                You now understand the LIFO principle and how push, pop, and peek all work in
+                constant time. The Stack&apos;s sibling — the Queue — flips the ordering to FIFO.
+                Let&apos;s explore that next!
               </p>
-
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
-                  href="/learn-dsa"
+                  href="/learn-dsa/queue"
                   style={{
                     background: '#6FB5FF',
                     color: '#fff',
@@ -460,22 +467,7 @@ export default function QuickSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Back to Sorting →
-                </Link>
-                <Link
-                  href="/visualizer/sorting"
-                  style={{
-                    background: '#dbeeff',
-                    color: '#1a6bb5',
-                    borderRadius: 8,
-                    padding: '9px 18px',
-                    fontFamily: 'var(--font-nunito)',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Practice in Visualizer
+                  Next: Queue →
                 </Link>
               </div>
             </div>

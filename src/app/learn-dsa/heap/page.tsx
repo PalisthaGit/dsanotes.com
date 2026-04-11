@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LearnSidebar } from '../sidebar'
-import MiniSortingVisualizer from '@/components/visualizers/sorting/MiniSortingVisualizer'
+import MiniDSVisualizer from '@/components/visualizers/data-structures/MiniDSVisualizer'
 
 export const metadata: Metadata = {
-  title: 'Quick Sort Explained | Learn DSA',
+  title: 'Heap Explained | Learn DSA',
   description:
-    'Learn how Quick Sort works step by step with examples, code, and complexity analysis.',
+    'Learn how a min-heap works with insert, bubble-up, extract-min, bubble-down, and Java PriorityQueue examples.',
 }
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
@@ -108,19 +108,13 @@ function CodeBlock({ code }: { code: string }) {
   )
 }
 
-function ComplexityTable() {
-  const rows = [
-    { case: 'Best', value: 'O(n log n)', note: 'Pivot always splits array evenly' },
-    { case: 'Average', value: 'O(n log n)', note: 'Random pivots usually produce balanced splits' },
-    { case: 'Worst', value: 'O(n²)', note: 'Pivot is always the smallest or largest — sorted/reverse-sorted input' },
-  ]
-
+function ComplexityTable({ rows }: { rows: { case: string; value: string; note: string }[] }) {
   return (
     <div style={{ overflowX: 'auto', marginBottom: 24 }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f0f7ff' }}>
-            {['Case', 'Time Complexity', 'Notes'].map((h) => (
+            {['Operation', 'Time Complexity', 'Notes'].map((h) => (
               <th
                 key={h}
                 style={{
@@ -186,46 +180,46 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'If the array has one or zero elements, return.',
-  'Pick a pivot (last element is common).',
-  'Partition: move elements smaller than pivot to the left, larger to the right.',
-  'Place the pivot in its final sorted position.',
-  'Recursively sort the left sub-array.',
-  'Recursively sort the right sub-array.',
+  'Insert: place the new element at the end of the array (the next available leaf position).',
+  'Bubble Up: compare the new element with its parent; if smaller, swap them and repeat upward.',
+  'Extract Min: the root is always the minimum — swap it with the last element, then remove the last.',
+  'Bubble Down: compare the new root with its children; swap with the smaller child and repeat downward.',
+  'The heap invariant (parent ≤ children) is restored after every insert and extract operation.',
 ]
 
-const JAVA_CODE = `class QuickSortExample {
-    public static int partition(int[] arr, int low, int high) {
-        int pivot = arr[high];
-        int i = low - 1;
+const JAVA_CODE = `import java.util.PriorityQueue;
 
-        for (int j = low; j < high; j++) {
-            if (arr[j] <= pivot) {
-                i++;
-                int temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
-            }
-        }
-        // Place pivot in its correct position
-        int temp = arr[i + 1]; arr[i + 1] = arr[high]; arr[high] = temp;
-        return i + 1;
-    }
-
-    public static void quickSort(int[] arr, int low, int high) {
-        if (low >= high) return;
-        int pivotIndex = partition(arr, low, high);
-        quickSort(arr, low, pivotIndex - 1);
-        quickSort(arr, pivotIndex + 1, high);
-    }
-
+public class HeapExample {
     public static void main(String[] args) {
-        int[] arr = {38, 27, 43, 12, 52, 19};
-        quickSort(arr, 0, arr.length - 1);
-        System.out.println("Sorted array:");
-        for (int num : arr) System.out.print(num + " ");
+        // Java's PriorityQueue is a min-heap by default
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        // Insert elements — O(log n) each
+        minHeap.offer(40);
+        minHeap.offer(10);
+        minHeap.offer(30);
+        minHeap.offer(5);
+        minHeap.offer(20);
+
+        // peek: view the minimum without removing — O(1)
+        System.out.println("Min: " + minHeap.peek()); // 5
+
+        // poll: remove and return the minimum — O(log n)
+        System.out.println(minHeap.poll()); // 5
+        System.out.println(minHeap.poll()); // 10
+        System.out.println(minHeap.poll()); // 20
+
+        // Heap sort: keep polling to get elements in ascending order
+        PriorityQueue<Integer> heap = new PriorityQueue<>();
+        int[] data = {15, 3, 9, 1, 7};
+        for (int n : data) heap.offer(n);
+        System.out.print("Sorted: ");
+        while (!heap.isEmpty()) System.out.print(heap.poll() + " ");
+        // Output: Sorted: 1 3 7 9 15
     }
 }`
 
-export default function QuickSortPage() {
+export default function HeapPage() {
   return (
     <div style={{ background: '#ffffff', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }} className="px-4 sm:px-8 py-10">
@@ -244,7 +238,7 @@ export default function QuickSortPage() {
           {' / '}
           <Link href="/learn-dsa" style={{ color: '#9ca3af', textDecoration: 'none' }}>Learn DSA</Link>
           {' / '}
-          <span style={{ color: '#6FB5FF' }}>Quick Sort</span>
+          <span style={{ color: '#6FB5FF' }}>Heap</span>
         </div>
 
         {/* Two-column layout */}
@@ -262,8 +256,8 @@ export default function QuickSortPage() {
             <span
               style={{
                 display: 'inline-block',
-                background: '#dbeeff',
-                color: '#1a6bb5',
+                background: '#fff7ed',
+                color: '#c2410c',
                 fontFamily: 'var(--font-nunito)',
                 fontWeight: 700,
                 fontSize: 11,
@@ -273,7 +267,7 @@ export default function QuickSortPage() {
                 letterSpacing: '0.05em',
               }}
             >
-              SORTING ALGORITHMS
+              DATA STRUCTURES
             </span>
 
             {/* Title */}
@@ -287,7 +281,7 @@ export default function QuickSortPage() {
                 lineHeight: 1.2,
               }}
             >
-              Quick Sort
+              Heap
             </h1>
 
             {/* Meta row */}
@@ -300,78 +294,85 @@ export default function QuickSortPage() {
                 flexWrap: 'wrap',
               }}
             >
-              <span
-                style={{
-                  fontFamily: 'var(--font-nunito)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: '#6b7280',
-                }}
-              >
-                🕐 9 min read
+              <span style={{ fontFamily: 'var(--font-nunito)', fontWeight: 600, fontSize: 13, color: '#6b7280' }}>
+                🕐 8 min read
               </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-nunito)',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: '#6b7280',
-                }}
-              >
-                📗 Intermediate
+              <span style={{ fontFamily: 'var(--font-nunito)', fontWeight: 600, fontSize: 13, color: '#6b7280' }}>
+                📙 Intermediate
               </span>
             </div>
 
-            {/* Inbuilt visualizer */}
+            {/* Mini visualizer */}
             <div style={{ marginBottom: 28 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" />
+              <MiniDSVisualizer type="heap" />
             </div>
 
             {/* Intro callout */}
             <CalloutBox>
-              Quick sort picks a &apos;pivot&apos; element and rearranges the array so all smaller
-              elements come before it and all larger elements come after. Then it recursively does the
-              same for each side.
+              A <strong>min-heap</strong> is a complete binary tree where every parent is less than
+              or equal to its children. This single rule guarantees that the{' '}
+              <strong>minimum element is always at the root</strong>, accessible in O(1) time. Heaps
+              power priority queues, scheduling systems, and algorithms like Dijkstra&apos;s.
             </CalloutBox>
 
-            {/* ── Section 1 ── */}
-            <SectionHeading>How Quick Sort Works</SectionHeading>
-
-            <SubHeading>Choosing a pivot</SubHeading>
+            {/* Section 1 */}
+            <SectionHeading>What is a Heap?</SectionHeading>
 
             <Paragraph>
-              We pick one element as the pivot (often the last element). We then scan the rest of the
-              array and put everything smaller than the pivot on its left and everything larger on its
-              right.
+              A heap is typically stored as an array — no explicit left/right pointers needed. For a
+              node at index <strong>i</strong>, its left child is at <strong>2i + 1</strong>, its
+              right child at <strong>2i + 2</strong>, and its parent at{' '}
+              <strong>floor((i − 1) / 2)</strong>.
             </Paragraph>
 
             <Paragraph>
-              <strong>Starting array:</strong> [38, 27, 43, 12, 52, 19] — Pivot = 19 (last element)
+              Because a heap is a <strong>complete binary tree</strong> (all levels are full except
+              possibly the last, which is filled left to right), its height is always O(log n). This
+              bounded height is what gives insert and extract their O(log n) performance.
             </Paragraph>
 
             <CalloutBox>
-              Scanning: 38 &gt; 19 (right), 27 &gt; 19 (right), 43 &gt; 19 (right), 12 &lt; 19
-              (left) → after partition: [12, 19, 43, 27, 52, 38]
+              Array: [1, 3, 5, 7, 9, 8] represents the tree where 1 is the root, 3 and 5 are its children, and so on.
             </CalloutBox>
 
-            <SubHeading>After partitioning</SubHeading>
+            {/* Section 2 */}
+            <SectionHeading>Insert and Bubble Up</SectionHeading>
 
             <Paragraph>
-              19 is now in its final position. Everything to its left is smaller, everything to its
-              right is larger. Now repeat the process on each side.
+              To insert a new element, add it to the end of the array (the next leaf position). This
+              might violate the heap property if the new element is smaller than its parent.
             </Paragraph>
 
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="quick" maxSortedCount={2} />
-            </div>
+            <Paragraph>
+              Fix it by <strong>bubbling up</strong>: compare the new element with its parent and
+              swap if smaller. Repeat this process moving up toward the root until the heap property
+              is restored or the root is reached. Each level takes constant work, so this is O(log n).
+            </Paragraph>
 
-            <CalloutBox>
-              Quick sort is fast in practice because it sorts in-place without needing extra arrays
-              — unlike merge sort.
-            </CalloutBox>
+            <SubHeading>Example: Insert 2 into [1, 3, 5, 7, 9, 8]</SubHeading>
 
-            {/* ── Section 2 ── */}
-            <SectionHeading>Quick Sort Algorithm (Step by Step)</SectionHeading>
+            <Paragraph>
+              2 is appended at the end: [1, 3, 5, 7, 9, 8, 2]. Its parent at index 2 is 5, which is
+              larger, so swap: [1, 3, 2, 7, 9, 8, 5]. Now 2&apos;s parent at index 0 is 1, which is
+              smaller — heap property is satisfied.
+            </Paragraph>
+
+            {/* Section 3 */}
+            <SectionHeading>Extract Min and Bubble Down</SectionHeading>
+
+            <Paragraph>
+              To extract the minimum, take the root (index 0), move the last element to the root
+              position, and remove the last slot. The heap property may now be violated at the root.
+            </Paragraph>
+
+            <Paragraph>
+              Fix it by <strong>bubbling down</strong>: compare the root with its two children and
+              swap with the <strong>smaller</strong> child. Repeat downward until the element is in
+              the correct position or there are no more children. This is also O(log n).
+            </Paragraph>
+
+            {/* Algorithm steps */}
+            <SectionHeading>Heap Algorithm Steps</SectionHeading>
 
             <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
               {ALGORITHM_STEPS.map((step, i) => (
@@ -391,23 +392,23 @@ export default function QuickSortPage() {
               ))}
             </ol>
 
-            {/* ── Section 3 ── */}
-            <SectionHeading>Quick Sort Code</SectionHeading>
+            {/* Section 4 */}
+            <SectionHeading>Heap Code</SectionHeading>
 
             <CodeBlock code={JAVA_CODE} />
 
-            {/* ── Section 4 ── */}
-            <SectionHeading>Complexity of Quick Sort</SectionHeading>
+            {/* Section 5 */}
+            <SectionHeading>Complexity of Heap</SectionHeading>
 
-            <ComplexityTable />
-
-            <SubHeading>Space Complexity</SubHeading>
-
-            <Paragraph>
-              <strong>O(log n) average — the recursion stack depth.</strong> No extra array is
-              needed, but the call stack grows with each recursive level. In the worst case (already
-              sorted input with a bad pivot), the stack can reach O(n).
-            </Paragraph>
+            <ComplexityTable
+              rows={[
+                { case: 'Insert', value: 'O(log n)', note: 'Bubble up traverses at most the tree height' },
+                { case: 'Extract Min', value: 'O(log n)', note: 'Bubble down traverses at most the tree height' },
+                { case: 'Peek (Min)', value: 'O(1)', note: 'Root is always the minimum — direct access' },
+                { case: 'Build Heap', value: 'O(n)', note: 'Heapify all nodes bottom-up is linear' },
+                { case: 'Space', value: 'O(n)', note: 'One array slot per element' },
+              ]}
+            />
 
             {/* Closing card */}
             <div
@@ -428,7 +429,7 @@ export default function QuickSortPage() {
                   marginBottom: 10,
                 }}
               >
-                Excellent!
+                You&apos;ve got the basics!
               </div>
               <p
                 style={{
@@ -440,12 +441,11 @@ export default function QuickSortPage() {
                   marginBottom: 16,
                 }}
               >
-                You&apos;ve now mastered the three most important comparison-based sorting algorithms.
-                Bubble Sort, Insertion Sort, Merge Sort, and Quick Sort form the foundation of how
-                computers organize data efficiently. Experiment in the visualizer to see them in
-                action on different arrays.
+                You now understand how heaps maintain the min-element at the root through bubble-up
+                and bubble-down, and how Java&apos;s PriorityQueue gives you a production-ready
+                min-heap out of the box. You&apos;ve covered all six core data structures — head
+                back to the Learn DSA overview to explore algorithms that use them!
               </p>
-
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
                   href="/learn-dsa"
@@ -460,22 +460,7 @@ export default function QuickSortPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Back to Sorting →
-                </Link>
-                <Link
-                  href="/visualizer/sorting"
-                  style={{
-                    background: '#dbeeff',
-                    color: '#1a6bb5',
-                    borderRadius: 8,
-                    padding: '9px 18px',
-                    fontFamily: 'var(--font-nunito)',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Practice in Visualizer
+                  Back to Learn DSA →
                 </Link>
               </div>
             </div>

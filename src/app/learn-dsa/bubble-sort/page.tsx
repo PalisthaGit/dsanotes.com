@@ -109,6 +109,74 @@ function CodeBlock({ code }: { code: string }) {
   )
 }
 
+function StaticArrayViz({
+  arr,
+  comparing = [],
+  swapping = [],
+  sorted = [],
+}: {
+  arr: number[]
+  comparing?: number[]
+  swapping?: number[]
+  sorted?: number[]
+}) {
+  const max = Math.max(...arr, 1)
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        height: 80,
+        gap: 6,
+        margin: '10px 0 18px',
+        padding: '0 4px',
+      }}
+    >
+      {arr.map((val, i) => {
+        const heightPct = Math.max((val / max) * 100, 4)
+        const isCompare = comparing.includes(i)
+        const isSwap = swapping.includes(i)
+        const isSorted = sorted.includes(i)
+        const bg = isSorted ? '#22c55e' : isSwap ? '#fb923c' : isCompare ? '#6FB5FF' : '#c7d2e8'
+        const textColor = isSorted ? '#16a34a' : isSwap ? '#ea580c' : isCompare ? '#2563eb' : '#6b7280'
+        return (
+          <div
+            key={i}
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              height: '100%',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-nunito)',
+                fontWeight: 700,
+                fontSize: 11,
+                color: textColor,
+                marginBottom: 3,
+              }}
+            >
+              {val}
+            </span>
+            <div
+              style={{
+                width: '100%',
+                height: `${heightPct}%`,
+                background: bg,
+                borderRadius: '4px 4px 0 0',
+              }}
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function ComplexityTable() {
   const rows = [
     { case: 'Best', value: 'O(n)', note: 'Already sorted — detects early with swap flag' },
@@ -186,15 +254,33 @@ function ComplexityTable() {
   )
 }
 
-const ALGORITHM_STEPS = [
-  'Start with the first number in the list.',
-  'Compare it with the number next to it.',
-  'If the first number is bigger, swap them.',
-  'Move to the next pair.',
-  'Keep doing this until you reach the end.',
-  'Now the largest number is at the end.',
-  'Repeat from the beginning, but stop one step earlier.',
-  'Keep repeating until the list is sorted.',
+const ALGORITHM_STEPS: Array<{
+  text: string
+  maxSortedCount?: number
+  startFromSortedCount?: number
+}> = [
+  {
+    text: 'Compare the first two adjacent numbers — swap if the left is bigger.',
+    maxSortedCount: 1,
+  },
+  {
+    text: 'Move to the next pair and repeat across the whole array.',
+    maxSortedCount: 1,
+  },
+  {
+    text: 'After one full pass, the largest number is in its correct place at the end.',
+    startFromSortedCount: 1,
+    maxSortedCount: 2,
+  },
+  {
+    text: 'Start over from the beginning, stopping one position earlier each round.',
+    startFromSortedCount: 2,
+    maxSortedCount: 3,
+  },
+  {
+    text: 'Repeat until a complete pass has no swaps — the array is sorted.',
+    startFromSortedCount: 3,
+  },
 ]
 
 const JAVA_CODE = `class BubbleSortExample {
@@ -360,6 +446,8 @@ export default function BubbleSortPage() {
               <strong>Starting array:</strong> [222, 40, 66, 99, 12, 5]
             </Paragraph>
 
+            <StaticArrayViz arr={[222, 40, 66, 99, 12, 5]} comparing={[0, 1]} />
+
             <Paragraph>
               We want to make sure the largest number ends up in the last position.
             </Paragraph>
@@ -369,6 +457,7 @@ export default function BubbleSortPage() {
             </Paragraph>
 
             <CalloutBox>Updated array: [40, 222, 66, 99, 12, 5]</CalloutBox>
+            <StaticArrayViz arr={[40, 222, 66, 99, 12, 5]} swapping={[0, 1]} comparing={[1, 2]} />
 
             <Paragraph>
               Next, compare the second and third elements: 222 and 66. Again, 222 is greater, so we
@@ -376,55 +465,17 @@ export default function BubbleSortPage() {
             </Paragraph>
 
             <CalloutBox>Updated array: [40, 66, 222, 99, 12, 5]</CalloutBox>
+            <StaticArrayViz arr={[40, 66, 222, 99, 12, 5]} swapping={[1, 2]} comparing={[2, 3]} />
 
             <Paragraph>
               We continue comparing each pair of adjacent elements and swapping when needed until we
               reach the end of the list.
             </Paragraph>
 
+            <StaticArrayViz arr={[40, 66, 99, 12, 5, 222]} sorted={[5]} />
+
             <div style={{ marginBottom: 24, marginTop: 8 }}>
               <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={1} />
-            </div>
-
-            {/* Sub: second-last */}
-            <SubHeading>Sorting the second-last element</SubHeading>
-
-            <Paragraph>
-              Now that the largest element is in place, we don&apos;t need to touch it again.
-            </Paragraph>
-
-            <Paragraph>
-              Next, we&apos;ll move the second-largest number into the second-last position using the
-              same steps. We compare and swap adjacent pairs, but only up to the second-last index.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={2} />
-            </div>
-
-            {/* Sub: third-last */}
-            <SubHeading>Sorting the third-last element</SubHeading>
-
-            <Paragraph>
-              We repeat the same process again, this time stopping one step earlier — up to the
-              third-last index.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" maxSortedCount={3} />
-            </div>
-
-            {/* Sub: the rest */}
-            <SubHeading>Sorting the Rest of the Elements</SubHeading>
-
-            <Paragraph>
-              We continue this pattern until the second element is in the correct position. At that
-              point, the first element is also automatically in place because everything else around
-              it is already sorted.
-            </Paragraph>
-
-            <div style={{ marginBottom: 24, marginTop: 8 }}>
-              <MiniSortingVisualizer initialAlgorithm="bubble" startFromSortedCount={3} />
             </div>
 
             <CalloutBox>
@@ -435,23 +486,68 @@ export default function BubbleSortPage() {
             {/* ── Section 2 ── */}
             <SectionHeading>Bubble Sort Algorithm (Step by Step)</SectionHeading>
 
-            <ol style={{ margin: '0 0 24px 0', padding: '0 0 0 24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 24 }}>
               {ALGORITHM_STEPS.map((step, i) => (
-                <li
+                <div
                   key={i}
                   style={{
-                    fontFamily: 'var(--font-nunito)',
-                    fontWeight: 600,
-                    fontSize: 15,
-                    color: '#374151',
-                    lineHeight: 1.8,
-                    marginBottom: 6,
+                    border: '1.5px solid #e5eaf3',
+                    borderRadius: 14,
+                    overflow: 'hidden',
                   }}
                 >
-                  {step}
-                </li>
+                  {/* Step header */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '14px 18px',
+                      background: '#f8faff',
+                      borderBottom: '1px solid #e5eaf3',
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 26,
+                        height: 26,
+                        borderRadius: '50%',
+                        background: '#6FB5FF',
+                        color: '#fff',
+                        fontFamily: 'var(--font-poppins)',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-nunito)',
+                        fontWeight: 700,
+                        fontSize: 14,
+                        color: '#1e3a5f',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {step.text}
+                    </span>
+                  </div>
+                  {/* Visualizer */}
+                  <div style={{ padding: '16px 16px 12px' }}>
+                    <MiniSortingVisualizer
+                      initialAlgorithm="bubble"
+                      maxSortedCount={step.maxSortedCount}
+                      startFromSortedCount={step.startFromSortedCount}
+                    />
+                  </div>
+                </div>
               ))}
-            </ol>
+            </div>
 
             {/* ── Section 3 ── */}
             <SectionHeading>Bubble Sort Code</SectionHeading>

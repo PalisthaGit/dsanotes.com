@@ -186,13 +186,11 @@ function ComplexityTable() {
 }
 
 const ALGORITHM_STEPS = [
-  'Ensure the array is sorted.',
   'Set low = 0, high = last index.',
   'Calculate mid = (low + high) / 2.',
-  'If arr[mid] == target, return mid.',
-  'If arr[mid] < target, set low = mid + 1 (search right half).',
-  'If arr[mid] > target, set high = mid - 1 (search left half).',
-  'Repeat until low > high (not found) or target found.',
+  'If arr[mid] == target, done.',
+  'If target is larger, search right (low = mid + 1). If smaller, search left (high = mid - 1).',
+  'Repeat until found or low > high.',
 ]
 
 const JAVA_CODE = `class BinarySearchExample {
