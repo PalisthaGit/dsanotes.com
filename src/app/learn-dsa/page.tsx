@@ -32,6 +32,13 @@ const SECTIONS: Section[] = [
     pillColor: '#c2410c',
     topics: [
       {
+        id: 'array',
+        title: 'Array',
+        description: 'A fixed-size collection of same-type items stored in a row — instant access by index, the foundation of most data structures.',
+        href: '/learn-dsa/array',
+        readMin: 12,
+      },
+      {
         id: 'linked-list',
         title: 'Linked List',
         description: 'A chain of nodes where each node holds a value and a pointer to the next — the foundation of stacks, queues, and more.',

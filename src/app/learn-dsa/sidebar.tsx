@@ -20,6 +20,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
     id: 'data-structures',
     label: 'Data Structures',
     topics: [
+      { id: 'array', title: 'Array', href: '/learn-dsa/array' },
       { id: 'linked-list', title: 'Linked List', href: '/learn-dsa/linked-list' },
       { id: 'stack', title: 'Stack', href: '/learn-dsa/stack' },
       { id: 'queue', title: 'Queue', href: '/learn-dsa/queue' },

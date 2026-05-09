@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Nunito, JetBrains_Mono } from "next/font/google";
+import { Poppins, Nunito, JetBrains_Mono, Lora, Figtree, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar, Footer } from "@/components/layout";
 
@@ -21,6 +21,24 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500"],
 });
 
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
+const figtree = Figtree({
+  variable: "--font-figtree",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+const dmMono = DM_Mono({
+  variable: "--font-dm-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+});
+
 export const metadata: Metadata = {
   title: {
     default: "DSANotes",
@@ -38,7 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${nunito.variable} ${jetbrainsMono.variable}`}
+      className={`${poppins.variable} ${nunito.variable} ${jetbrainsMono.variable} ${lora.variable} ${figtree.variable} ${dmMono.variable}`}
     >
       <body>
         <Navbar />
