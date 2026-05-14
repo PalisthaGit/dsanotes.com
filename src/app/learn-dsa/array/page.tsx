@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LearnSidebar } from '../sidebar'
+import { ArrayVisualizer } from '@/components/visualizers/array/array-visualizer'
 
 export const metadata: Metadata = {
   title: 'What is an Array in Programming | Learn DSA',
@@ -820,6 +821,8 @@ export default function ArrayPage() {
             </Paragraph>
 
             <PlaylistVisual />
+
+            <ArrayVisualizer />
 
             <Paragraph>
               That is an array. An array is a collection of items of the same type.

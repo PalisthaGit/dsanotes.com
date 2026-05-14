@@ -16,6 +16,7 @@ const PILL_COLORS: [string, string][] = [
 ]
 
 const DS_EMOJIS: Record<string, string> = {
+  array: '🎵',
   'linked-list': '🔗',
   stack: '📚',
   queue: '🎫',
@@ -27,6 +28,7 @@ const DS_EMOJIS: Record<string, string> = {
 const CATEGORY_FILTERS = ['All', 'Linear', 'Tree', 'Graph']
 
 const DS_CATEGORIES: Record<string, string> = {
+  array: 'Linear',
   'linked-list': 'Linear',
   stack: 'Linear',
   queue: 'Linear',

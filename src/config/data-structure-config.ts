@@ -1,6 +1,7 @@
 import type { FeatureConfig } from "@/config/feature-config";
 import {
   GitBranch,
+  Grid,
   Link,
   Network,
   Square,
@@ -9,6 +10,18 @@ import {
 } from "lucide-react";
 
 export const dataStructureConfigs: FeatureConfig[] = [
+  {
+    id: "array",
+    title: "Array",
+    description:
+      "Fixed-size sequential structure. Access any element in O(1) using its index.",
+    path: "data-structures/array",
+    status: "active",
+    icon: Grid,
+    type: "Data Structures",
+    tags: ["array", "data structure", "index", "sequential", "random access"],
+    features: ["Access", "Update", "Add", "Remove", "Traverse"],
+  },
   {
     id: "linked-list",
     title: "Linked List",
